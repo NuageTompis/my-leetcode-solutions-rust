@@ -1,1 +1,0 @@
-mod s1800_maximum_ascending_subarray_sum;

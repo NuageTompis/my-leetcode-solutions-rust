@@ -1,7 +1,12 @@
-use std::{fs, io};
+use std::{
+    fs::{self, File, OpenOptions},
+    io::{self, Write},
+    path::Path,
+};
 
 const ENV_PATH: &str = ".env";
 const SLUGS_PATH: &str = "resources/slugs_and_ids.txt";
+const SOLUTION_MOD_PATH: &str = "./src/solutions/mod.rs";
 
 /// Possible results of local read (`LocalReadResult`)
 #[derive(Debug)]
@@ -25,7 +30,7 @@ pub fn try_update_env_variable(variable: &str, value: &str) -> Result<(), io::Er
                 }
             }
             fs::write(ENV_PATH, new_lines.join("\n"))?;
-        },
+        }
         Err(e) => {
             if e.kind() == io::ErrorKind::NotFound {
                 fs::write(ENV_PATH, new_pair)?;
@@ -42,7 +47,28 @@ pub fn try_write_slugs_and_ids(content: String) -> io::Result<()> {
 }
 
 pub fn try_write_solution_template(path: &str, content: &str) -> Result<(), io::Error> {
-    fs::write(path, content)
+    if Path::new(path).exists() {
+        Err(io::Error::new(
+            io::ErrorKind::AlreadyExists,
+            "File already exists",
+        ))
+    } else {
+        fs::write(path, content)
+    }
+}
+
+pub fn try_append_solution_module(filename: &str) -> Result<(), io::Error> {
+    let mod_file = Path::new(SOLUTION_MOD_PATH);
+
+    let mut file = OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open(mod_file)
+        .or_else(|_| File::create(mod_file))
+        .unwrap();
+
+    let content = format!("mod {};\n", filename);
+    file.write_all(content.as_bytes())
 }
 
 // Trait to define behaviours on object we will be reading (eg slugs, premium value etc..)

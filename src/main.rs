@@ -5,8 +5,8 @@ mod args;
 mod config;
 mod create;
 mod fetch;
-mod read_write;
 mod parse_api;
+mod read_write;
 mod solutions;
 
 #[tokio::main]

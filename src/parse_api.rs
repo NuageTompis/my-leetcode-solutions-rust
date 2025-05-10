@@ -11,6 +11,16 @@ pub enum ProbMetaData {
 struct ClassMetaData {
     #[serde(rename = "classname")]
     class_name: String,
+    constructor: ConstructorJson,
+    methods: Vec<FunctionMetaData>,
+    #[serde(rename = "return")]
+    _return: ReturnJson,
+    systemdesign: Option<bool>,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+struct ConstructorJson {
+    params: Vec<ParamJson>,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
@@ -45,6 +55,40 @@ pub fn parse_meta_data(meta_data: &str) -> Result<ProbMetaData, serde_json::Erro
     } else {
         Ok(ProbMetaData::Unknown(meta_data.into()))
     }
+}
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "type")]
+enum MyEnum {
+    #[serde(rename = "dog")]
+    Dog,
+    #[serde(rename = "cat")]
+    Cat,
+    #[serde(rename = "elf")]
+    Elf,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[serde(tag = "type")]
+enum ReturnJsonEnum {
+    #[serde(rename = "integer")]
+    Integer,
+    #[serde(rename = "string")]
+    String,
+    // list qqch
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+enum Message {
+    Text {
+        content: String,
+    },
+    Image {
+        url: String,
+        width: u32,
+        height: u32,
+    },
 }
 
 #[cfg(test)]
@@ -102,6 +146,12 @@ mod tests {
         let res = parse_meta_data(meta_data).unwrap();
         let expected = ProbMetaData::Class(ClassMetaData {
             class_name: "RandomizedSet".into(),
+            constructor: ConstructorJson { params: Vec::new() },
+            methods: Vec::new(),
+            _return: ReturnJson {
+                _type: "boolean".into(),
+            },
+            systemdesign: Some(true),
         });
         assert_eq!(res, expected);
     }
@@ -119,5 +169,29 @@ mod tests {
         let res = parse_meta_data(meta_data).unwrap();
         let expected = ProbMetaData::Unknown(meta_data.into());
         assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_parse_enum() {
+        let dog = r#" {"type": "dog"} "#;
+        let dog_res = serde_json::from_str::<MyEnum>(dog);
+        assert_eq!(dog_res.unwrap(), MyEnum::Dog);
+        let nothing = r#" {"type": "god"} "#;
+        let nothing_res = serde_json::from_str::<MyEnum>(nothing);
+        assert!(nothing_res.is_err());
+        let cat = r#" {"type": "cat"} "#;
+        let cat_res = serde_json::from_str::<MyEnum>(cat);
+        assert_eq!(cat_res.unwrap(), MyEnum::Cat);
+        let nothing_bis = r#" {"type": "catdog"} "#;
+        let nothing_bis_res = serde_json::from_str::<MyEnum>(nothing_bis);
+        assert!(nothing_bis_res.is_err());
+    }
+
+    #[test]
+    fn test_one() {
+        let ex_1 = r#"{ "type": "Text", "content": "Hello, world!" }"#;
+        let ex_2 = r#"{ "type": "Image", "url": "http://example.com/cat.jpg", "width": 800, "height": 600 }"#;
+        let msg: Message = serde_json::from_str(ex_1).unwrap();
+        let msg: Message = serde_json::from_str(ex_2).unwrap();
     }
 }

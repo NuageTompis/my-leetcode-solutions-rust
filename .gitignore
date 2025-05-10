@@ -2,4 +2,7 @@
 
 .env
 
-/resourcse
+/resources/slugs_and_ids.txt
+
+/tests
+/notes

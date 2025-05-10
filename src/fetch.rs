@@ -26,34 +26,67 @@ struct Json4 {
     default_code: String,
     value: String,
 }
+// and this
+#[derive(Debug, Deserialize, Serialize)]
+struct Json1Bis {
+    data: Json2Bis,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct Json2Bis {
+    question: Json3Bis,
+}
+#[derive(Debug, Deserialize, Serialize)]
+struct Json3Bis {
+    #[serde(rename = "exampleTestcases")]
+    example_testcases: String,
+}
 //
+
+const QUERY_QUESTION_DATA: &str = "query questionData($titleSlug: String!) { question(titleSlug: $titleSlug) { codeDefinition metaData }}";
+const QUERY_EXAMPLE_TESTCASES: &str = "query selectProblem($titleSlug: String!) { question(titleSlug: $titleSlug) { exampleTestcases }}";
+const GRAPHQL_URL: &str = "https://leetcode.com/graphql";
+
 #[derive(Debug, Serialize, Deserialize)]
 struct Variables {
     #[serde(rename = "titleSlug")]
     title_slug: String,
 }
-const QUERY: &str = "query questionData($titleSlug: String!) { question(titleSlug: $titleSlug) { codeDefinition metaData }}";
-const GRAPHQL_URL: &str = "https://leetcode.com/graphql";
-impl QueryBody {
+impl Variables {
     fn new(title_slug: &str) -> Self {
-        QueryBody {
-            operation_name: "questionData".into(),
-            variables: {
-                Variables {
-                    title_slug: title_slug.into(),
-                }
-            },
-            query: QUERY.into(),
+        Variables {
+            title_slug: title_slug.into(),
         }
     }
 }
-
 #[derive(Debug, Serialize, Deserialize)]
-struct QueryBody {
+struct ExampleTestcasesQueryBody {
+    variables: Variables,
+    query: String,
+}
+#[derive(Debug, Serialize, Deserialize)]
+struct QuestionDataQueryBody {
     #[serde(rename = "operationName")]
     operation_name: String,
     variables: Variables,
     query: String,
+}
+impl QuestionDataQueryBody {
+    fn new(title_slug: &str) -> Self {
+        QuestionDataQueryBody {
+            operation_name: "questionData".into(),
+            variables: Variables::new(title_slug),
+            query: QUERY_QUESTION_DATA.into(),
+        }
+    }
+}
+impl ExampleTestcasesQueryBody {
+    fn new(title_slug: &str) -> Self {
+        ExampleTestcasesQueryBody {
+            variables: Variables::new(title_slug),
+            query: QUERY_EXAMPLE_TESTCASES.into(),
+        }
+    }
 }
 
 pub fn handle_fetch_command(fetch: FetchCommand) {
@@ -98,7 +131,8 @@ impl PartialEq for FetchContentErr {
 }
 
 pub async fn try_fetch_content(slug: &str) -> Result<String, FetchContentErr> {
-    let body = QueryBody::new(slug);
+    let body = QuestionDataQueryBody::new(slug);
+
     let response: Json1 = reqwest::Client::new()
         .post(GRAPHQL_URL)
         .json(&body)
@@ -110,7 +144,7 @@ pub async fn try_fetch_content(slug: &str) -> Result<String, FetchContentErr> {
         .map_err(|e| FetchContentErr::ReqwestErr(e))?;
 
     let languages = response.data.question.code_definition;
-    println!("meta data: {}", response.data.question.meta_data);
+
     let parsed: Vec<Json4> =
         serde_json::from_str(&languages).map_err(|e| FetchContentErr::ParseError(e))?;
 
@@ -121,6 +155,22 @@ pub async fn try_fetch_content(slug: &str) -> Result<String, FetchContentErr> {
     }
 
     Err(FetchContentErr::NotFound)
+}
+
+pub async fn try_fetch_example_testcases(slug: &str) -> Result<String, FetchContentErr> {
+    let body = ExampleTestcasesQueryBody::new(slug);
+
+    let response: Json1Bis = reqwest::Client::new()
+        .post(GRAPHQL_URL)
+        .json(&body)
+        .send()
+        .await
+        .map_err(FetchContentErr::ReqwestErr)?
+        .json()
+        .await
+        .map_err(FetchContentErr::ReqwestErr)?;
+
+    Ok(response.data.question.example_testcases)
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -152,5 +202,12 @@ mod tests_fetch {
         let problem_slug = "find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree"; // problem_id = 1379
         let content = try_fetch_content(problem_slug).await;
         assert_eq!(content, Err(FetchContentErr::NotFound));
+    }
+
+    #[tokio::test]
+    async fn test_fetch_example_testcases() {
+        let problem_slug = "find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree";
+        let example_testcases = try_fetch_example_testcases(problem_slug).await;
+        assert_eq!(example_testcases.unwrap(), "[7,4,3,null,null,6,19]\n3\n[7]\n7\n[8,null,6,null,5,null,4,null,3,null,2,null,1]\n4");
     }
 }

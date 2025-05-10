@@ -1,17 +1,23 @@
+use colored::Colorize;
+
 use crate::fetch::ProblemJSON;
 use crate::{fetch, read_write};
 
 use crate::args::CreateCommand;
 
-const ERR_HEADER: &str = "Unexpected error while";
+const UNEXPECTED_ERR_HEADER: &str = "Unexpected error while";
+const ERR_HEADER: &str = "Error while";
 const PREMIUM_COMMAND: &str = "`cargo conf premium (0 or 1)`";
 
 const NO_PREMIUM_ERR: &str = "This problem seems to be premium-only but you are registered as a free-user. Please run `cargo conf premium 1` if you are premium.";
 
-pub async fn handle_create_command(create: CreateCommand) {
+const TEST_COMPILER_CONFIGURATION_ATTRIBUTE: &str = "#[cfg(test)]\n";
+const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 2] = ["impl ", "struct "];
+
+fn try_checking_if_user_is_premium() -> Result<bool, ()> {
     println!("checking if you're premium...");
     let premium_read_res: read_write::LRR<String> = read_write::try_read_variable("premium", '=');
-    let premium: bool = match premium_read_res {
+    let premium = match premium_read_res {
         read_write::LRR::Found(value) => {
             let parse_res = value.parse::<u8>();
             match parse_res {
@@ -21,17 +27,17 @@ pub async fn handle_create_command(create: CreateCommand) {
                     _ => {
                         println!(
                             "{} reading premium bool from .env, it should be 0 or 1",
-                            ERR_HEADER
+                            UNEXPECTED_ERR_HEADER.red().bold()
                         );
-                        return;
+                        return Err(());
                     }
                 },
                 Err(_) => {
                     println!(
                         "{} parsing premium bool from .env, it should be 0 or 1",
-                        ERR_HEADER
+                        UNEXPECTED_ERR_HEADER.red().bold()
                     );
-                    return;
+                    return Err(());
                 }
             }
         }
@@ -57,8 +63,23 @@ pub async fn handle_create_command(create: CreateCommand) {
             false
         }
         read_write::LRR::UnexpectedError => {
-            println!("{} trying to read premium variable in .env", ERR_HEADER);
+            println!(
+                "{} trying to read premium variable in .env",
+                UNEXPECTED_ERR_HEADER.red().bold()
+            );
             false
+        }
+    };
+
+    Ok(premium)
+}
+
+pub async fn handle_create_command(create: CreateCommand) {
+    let premium_res = try_checking_if_user_is_premium();
+    let premium = match premium_res {
+        Ok(premium) => premium,
+        Err(_) => {
+            return;
         }
     };
 
@@ -80,13 +101,15 @@ pub async fn handle_create_command(create: CreateCommand) {
                 None => {
                     println!(
                         "{} parsing premium value locally for problem {}",
-                        ERR_HEADER, create.problem_id
+                        UNEXPECTED_ERR_HEADER.red().bold(),
+                        create.problem_id
                     );
                     return;
                 }
             };
             if prem && !premium {
                 println!("{}", NO_PREMIUM_ERR);
+                return;
             }
             Some(slug)
         }
@@ -100,7 +123,10 @@ pub async fn handle_create_command(create: CreateCommand) {
             None
         }
         read_write::LRR::UnexpectedError => {
-            println!("{} reading slug locally.", ERR_HEADER);
+            println!(
+                "{} reading slug locally.",
+                UNEXPECTED_ERR_HEADER.red().bold()
+            );
             None
         }
     };
@@ -145,13 +171,17 @@ pub async fn handle_create_command(create: CreateCommand) {
                 fetch::FetchContentErr::ReqwestErr(error) => {
                     println!(
                         "{} fetching content for problem {}: {}",
-                        ERR_HEADER, create.problem_id, error
+                        UNEXPECTED_ERR_HEADER.red().bold(),
+                        create.problem_id,
+                        error
                     );
                 }
                 fetch::FetchContentErr::ParseError(error) => {
                     println!(
                         "{} fetching content for problem {}: {}",
-                        ERR_HEADER, create.problem_id, error
+                        UNEXPECTED_ERR_HEADER.red().bold(),
+                        create.problem_id,
+                        error
                     );
                 }
             }
@@ -159,18 +189,51 @@ pub async fn handle_create_command(create: CreateCommand) {
         }
     };
 
-    let file_path = format!("./src/solutions/s{}_{}.rs", create.problem_id, slug);
-    let res = read_write::try_write_solution_template(&file_path, &content);
+    let content = apply_modifications_to_solution_file(content, true);
+    let filename = format!("s{}_{}", create.problem_id, slug).replace('-', "_");
+    let file_path = format!("./src/solutions/{}.rs", filename);
 
-    // eventually we should check that it doesn't already exist
+    let res = read_write::try_write_solution_template(&file_path, &content); // we check that it doesn't already exist
+
     match res {
         Ok(_) => {
-            println!("Successfully created and wrote to {}", file_path);
+            println!(
+                "{} created and wrote to {}",
+                "Successfully".cyan().bold(),
+                file_path
+            );
+            // declares the newly created module file so that it is included in unit tests
+            let res = read_write::try_append_solution_module(&filename);
+            if let Err(e) = res {
+                println!(
+                    "{} declaring module of solution file: {}",
+                    UNEXPECTED_ERR_HEADER.red().bold(),
+                    e
+                );
+            }
         }
         Err(e) => {
             println!("{} creating solution file: {}", ERR_HEADER, e);
         }
     }
+}
+
+fn apply_modifications_to_solution_file(
+    content: String,
+    should_add_solution_struct: bool,
+) -> String {
+    let mut content = if should_add_solution_struct {
+        format!("struct Solution;\n\n{}", content)
+    } else {
+        content
+    };
+
+    for pattern in PATTERNS_TO_GIVE_TEST_ATTRIBUTE {
+        let concat = format!("{}{}", TEST_COMPILER_CONFIGURATION_ATTRIBUTE, pattern);
+        content = content.replace(pattern, &concat);
+    }
+
+    content
 }
 
 fn handle_problems_fetch_and_find(
@@ -203,12 +266,16 @@ fn handle_problems_fetch_and_find(
                 .join("\n");
             let res = read_write::try_write_slugs_and_ids(new_slugs_and_ids_content);
             if let Err(e) = res {
-                println! {"{} writing all problems to slugs_and_ids: {}", ERR_HEADER, e};
+                println! {"{} writing all problems to slugs_and_ids: {}", UNEXPECTED_ERR_HEADER.red().bold(), e};
             }
             problem
         }
         Err(e) => {
-            println!("{} fecthing all problems: {}", ERR_HEADER, e);
+            println!(
+                "{} fecthing all problems: {}",
+                UNEXPECTED_ERR_HEADER.red().bold(),
+                e
+            );
             None
         }
     }
