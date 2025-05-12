@@ -121,12 +121,18 @@ pub enum FetchContentErr {
 // For unit tests
 impl PartialEq for FetchContentErr {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (FetchContentErr::NotFound, FetchContentErr::NotFound) => true,
-            (FetchContentErr::ReqwestErr(_), FetchContentErr::ReqwestErr(_)) => true,
-            (FetchContentErr::ParseError(_), FetchContentErr::ParseError(_)) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (FetchContentErr::NotFound, FetchContentErr::NotFound)
+                | (
+                    FetchContentErr::ReqwestErr(_),
+                    FetchContentErr::ReqwestErr(_)
+                )
+                | (
+                    FetchContentErr::ParseError(_),
+                    FetchContentErr::ParseError(_)
+                )
+        )
     }
 }
 
@@ -138,15 +144,15 @@ pub async fn try_fetch_content(slug: &str) -> Result<String, FetchContentErr> {
         .json(&body)
         .send()
         .await
-        .map_err(|e| FetchContentErr::ReqwestErr(e))?
+        .map_err(FetchContentErr::ReqwestErr)?
         .json()
         .await
-        .map_err(|e| FetchContentErr::ReqwestErr(e))?;
+        .map_err(FetchContentErr::ReqwestErr)?;
 
     let languages = response.data.question.code_definition;
 
     let parsed: Vec<Json4> =
-        serde_json::from_str(&languages).map_err(|e| FetchContentErr::ParseError(e))?;
+        serde_json::from_str(&languages).map_err(FetchContentErr::ParseError)?;
 
     for lang in &parsed {
         if lang.value == "rust" {
@@ -208,6 +214,9 @@ mod tests_fetch {
     async fn test_fetch_example_testcases() {
         let problem_slug = "find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree";
         let example_testcases = try_fetch_example_testcases(problem_slug).await;
-        assert_eq!(example_testcases.unwrap(), "[7,4,3,null,null,6,19]\n3\n[7]\n7\n[8,null,6,null,5,null,4,null,3,null,2,null,1]\n4");
+        assert_eq!(
+            example_testcases.unwrap(),
+            "[7,4,3,null,null,6,19]\n3\n[7]\n7\n[8,null,6,null,5,null,4,null,3,null,2,null,1]\n4"
+        );
     }
 }

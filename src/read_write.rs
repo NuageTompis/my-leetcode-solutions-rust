@@ -61,7 +61,6 @@ pub fn try_append_solution_module(filename: &str) -> Result<(), io::Error> {
     let mod_file = Path::new(SOLUTION_MOD_PATH);
 
     let mut file = OpenOptions::new()
-        .write(true)
         .append(true)
         .open(mod_file)
         .or_else(|_| File::create(mod_file))
