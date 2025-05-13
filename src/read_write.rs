@@ -8,9 +8,9 @@ const ENV_PATH: &str = ".env";
 const SLUGS_PATH: &str = "resources/slugs_and_ids.txt";
 const SOLUTION_MOD_PATH: &str = "./src/solutions/mod.rs";
 
-/// Possible results of local read (`LocalReadResult`)
+/// Possible results of local read
 #[derive(Debug)]
-pub enum LRR<T> {
+pub enum LocalReadResult<T> {
     Found(T),
     FileMissing,
     LineMissing,
@@ -100,7 +100,7 @@ impl ReadVarRes for (String, String) {
     }
 }
 
-pub fn try_read_variable<T: ReadVarRes>(variable: &str, separator: char) -> LRR<T> {
+pub fn try_read_variable<T: ReadVarRes>(variable: &str, separator: char) -> LocalReadResult<T> {
     match fs::read_to_string(T::file_path()) {
         Ok(content) => {
             for line in content.lines() {
@@ -109,20 +109,20 @@ pub fn try_read_variable<T: ReadVarRes>(variable: &str, separator: char) -> LRR<
                     if &line[..ndx] == variable {
                         let parts: Vec<&str> = line.split(separator).collect();
                         if let Some(parsed) = T::parse(&parts) {
-                            return LRR::Found(parsed);
+                            return LocalReadResult::Found(parsed);
                         } else {
-                            return LRR::LineCorrupted;
+                            return LocalReadResult::LineCorrupted;
                         }
                     }
                 }
             }
-            LRR::LineMissing
+            LocalReadResult::LineMissing
         }
         Err(e) => {
             if e.kind() == io::ErrorKind::NotFound {
-                LRR::FileMissing
+                LocalReadResult::FileMissing
             } else {
-                LRR::UnexpectedError
+                LocalReadResult::UnexpectedError
             }
         }
     }

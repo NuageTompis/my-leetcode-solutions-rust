@@ -1,3 +1,4 @@
+use std::fmt::{self};
 use std::str::FromStr;
 
 use regex::Regex;
@@ -12,7 +13,7 @@ pub enum ProbMetaData {
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
-struct ClassMetaData {
+pub struct ClassMetaData {
     #[serde(rename = "classname")]
     class_name: String,
     constructor: ConstructorJson,
@@ -27,11 +28,11 @@ struct ConstructorJson {
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
-struct FunctionMetaData {
+pub struct FunctionMetaData {
     name: String,
     params: Vec<ParamJson>,
     #[serde(rename = "return")]
-    _return: ReturnJson,
+    _return: Option<ReturnJson>, // was set as an Option to handle problem 470
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
@@ -53,6 +54,31 @@ struct ReturnJson {
 struct DataType {
     scalar_type: ScalarType,
     vec_depth: u8,
+}
+
+impl fmt::Display for DataType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut res = self.scalar_type.to_string();
+        for _ in 0..self.vec_depth {
+            res = format!("Vec<{}>", res);
+        }
+        write!(f, "{}", res)
+    }
+}
+impl fmt::Display for ScalarType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            ScalarType::Integer => write!(f, "i32"),
+            ScalarType::Character => write!(f, "char"),
+            ScalarType::Boolean => write!(f, "bool"),
+            ScalarType::Long => write!(f, "i64"),
+            ScalarType::String => write!(f, "String"),
+            ScalarType::ListNode => write!(f,"Option<Box<ListNode>>"),
+            ScalarType::Double => write!(f, "f64"),
+            ScalarType::TreeNode => write!(f, "Option<Rc<RefCell<TreeNode>>>"),
+            ScalarType::Void => todo!(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Serialize)]
@@ -174,12 +200,12 @@ mod tests {
                     vec_depth: 2,
                 },
             }],
-            _return: ReturnJson {
+            _return: Some(ReturnJson {
                 _type: DataType {
                     scalar_type: ScalarType::Integer,
                     vec_depth: 1,
                 },
-            },
+            }),
         });
         assert_eq!(res.unwrap(), expected);
     }
@@ -261,5 +287,22 @@ mod tests {
         assert_eq!(res, Ok(expected));
         let res = "list<foo[]".parse::<DataType>();
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_display_data_type() {
+        let string_type = DataType {
+            scalar_type: ScalarType::String,
+            vec_depth: 0,
+        };
+        let res = format!("{}", string_type);
+        assert_eq!(res, String::from("String"));
+
+        let char_type = DataType {
+            scalar_type: ScalarType::Character,
+            vec_depth: 2,
+        };
+        let res = format!("{}", char_type);
+        assert_eq!(res, String::from("Vec<Vec<char>>"));
     }
 }

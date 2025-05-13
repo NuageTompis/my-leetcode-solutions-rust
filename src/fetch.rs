@@ -1,4 +1,9 @@
-use crate::args::{FetchCommand, FetchSubcommand};
+use crate::{
+    args::{FetchCommand, FetchSubcommand},
+    create::UNEXPECTED_ERR_HEADER,
+    parse_api::ProbMetaData,
+};
+use colored::Colorize;
 use serde::{Deserialize, Serialize};
 
 pub const PROBLEM_LIST_URL: &str = "https://leetcode.com/api/problems/algorithms/";
@@ -42,6 +47,12 @@ struct Json3Bis {
     example_testcases: String,
 }
 //
+
+#[derive(Debug, PartialEq)]
+pub struct ProblemContent {
+    pub default_code: String,
+    pub metadata: ProbMetaData,
+}
 
 const QUERY_QUESTION_DATA: &str = "query questionData($titleSlug: String!) { question(titleSlug: $titleSlug) { codeDefinition metaData }}";
 const QUERY_EXAMPLE_TESTCASES: &str = "query selectProblem($titleSlug: String!) { question(titleSlug: $titleSlug) { exampleTestcases }}";
@@ -118,6 +129,35 @@ pub enum FetchContentErr {
     ParseError(serde_json::Error),
 }
 
+impl FetchContentErr {
+    pub fn log(&self, problem_id: u16) {
+        match self {
+            FetchContentErr::NotFound => {
+                println!(
+                    "Problem {} doesn't seem to be available in Rust (T_T)",
+                    problem_id
+                );
+            }
+            FetchContentErr::ReqwestErr(error) => {
+                println!(
+                    "{} fetching content for problem {}: {}",
+                    UNEXPECTED_ERR_HEADER.red().bold(),
+                    problem_id,
+                    error
+                );
+            }
+            FetchContentErr::ParseError(error) => {
+                println!(
+                    "{} fetching content for problem {}: {}",
+                    UNEXPECTED_ERR_HEADER.red().bold(),
+                    problem_id,
+                    error
+                );
+            }
+        }
+    }
+}
+
 // For unit tests
 impl PartialEq for FetchContentErr {
     fn eq(&self, other: &Self) -> bool {
@@ -136,7 +176,7 @@ impl PartialEq for FetchContentErr {
     }
 }
 
-pub async fn try_fetch_content(slug: &str) -> Result<String, FetchContentErr> {
+pub async fn try_fetch_content(slug: &str) -> Result<ProblemContent, FetchContentErr> {
     let body = QuestionDataQueryBody::new(slug);
 
     let response: Json1 = reqwest::Client::new()
@@ -154,13 +194,26 @@ pub async fn try_fetch_content(slug: &str) -> Result<String, FetchContentErr> {
     let parsed: Vec<Json4> =
         serde_json::from_str(&languages).map_err(FetchContentErr::ParseError)?;
 
+    let mut default_code = None;
     for lang in &parsed {
         if lang.value == "rust" {
-            return Ok(lang.default_code.clone());
+            default_code = Some(lang.default_code.clone());
         }
     }
 
-    Err(FetchContentErr::NotFound)
+    if let Some(default_code) = default_code {
+        let parse_metadata_result =
+            serde_json::from_str::<ProbMetaData>(&response.data.question.meta_data);
+        match parse_metadata_result {
+            Ok(metadata) => Ok(ProblemContent {
+                default_code,
+                metadata,
+            }),
+            Err(e) => Err(FetchContentErr::ParseError(e)),
+        }
+    } else {
+        Err(FetchContentErr::NotFound)
+    }
 }
 
 pub async fn try_fetch_example_testcases(slug: &str) -> Result<String, FetchContentErr> {
