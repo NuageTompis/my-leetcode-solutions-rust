@@ -7,6 +7,8 @@ use std::{
 const ENV_PATH: &str = ".env";
 const SLUGS_PATH: &str = "resources/slugs_and_ids.txt";
 const SOLUTION_MOD_PATH: &str = "./src/solutions/mod.rs";
+const TEST_FUNCTION_MOLD_PATH: &str = "resources/test_function_mold.txt";
+const TEST_FMODULE_MOLD_PATH: &str = "resources/test_module_mold.txt";
 
 /// Possible results of local read
 #[derive(Debug)]
@@ -40,6 +42,13 @@ pub fn try_update_env_variable(variable: &str, value: &str) -> Result<(), io::Er
         }
     };
     Ok(())
+}
+
+pub fn try_read_test_function_mold() -> Result<String, io::Error> {
+    fs::read_to_string(TEST_FUNCTION_MOLD_PATH)
+}
+pub fn try_read_test_module_mold() -> Result<String, io::Error> {
+    fs::read_to_string(TEST_FMODULE_MOLD_PATH)
 }
 
 pub fn try_write_slugs_and_ids(content: String) -> io::Result<()> {

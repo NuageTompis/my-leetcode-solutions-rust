@@ -29,31 +29,31 @@ struct ConstructorJson {
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct FunctionMetaData {
-    name: String,
-    params: Vec<ParamJson>,
+    pub name: String,
+    pub params: Vec<ParamJson>,
     #[serde(rename = "return")]
-    _return: Option<ReturnJson>, // was set as an Option to handle problem 470
+    pub _return: Option<ReturnJson>, // was set as an Option to handle problem 470
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct ParamJson {
+    pub name: String,
+    #[serde(rename = "type")]
+    #[serde(deserialize_with = "deserialize_data_type")]
+    pub _type: DataType,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
-struct ParamJson {
-    name: String,
+pub struct ReturnJson {
     #[serde(rename = "type")]
     #[serde(deserialize_with = "deserialize_data_type")]
-    _type: DataType,
+    pub _type: DataType,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
-struct ReturnJson {
-    #[serde(rename = "type")]
-    #[serde(deserialize_with = "deserialize_data_type")]
-    _type: DataType,
-}
-
-#[derive(Debug, PartialEq, Serialize)]
-struct DataType {
-    scalar_type: ScalarType,
-    vec_depth: u8,
+#[derive(Clone, Debug, PartialEq, Serialize)]
+pub struct DataType {
+    pub scalar_type: ScalarType,
+    pub vec_depth: u8,
 }
 
 impl fmt::Display for DataType {
@@ -65,6 +65,7 @@ impl fmt::Display for DataType {
         write!(f, "{}", res)
     }
 }
+
 impl fmt::Display for ScalarType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
@@ -73,7 +74,7 @@ impl fmt::Display for ScalarType {
             ScalarType::Boolean => write!(f, "bool"),
             ScalarType::Long => write!(f, "i64"),
             ScalarType::String => write!(f, "String"),
-            ScalarType::ListNode => write!(f,"Option<Box<ListNode>>"),
+            ScalarType::ListNode => write!(f, "Option<Box<ListNode>>"),
             ScalarType::Double => write!(f, "f64"),
             ScalarType::TreeNode => write!(f, "Option<Rc<RefCell<TreeNode>>>"),
             ScalarType::Void => todo!(),
@@ -81,8 +82,8 @@ impl fmt::Display for ScalarType {
     }
 }
 
-#[derive(Debug, PartialEq, Serialize)]
-enum ScalarType {
+#[derive(Clone, Copy, Debug, PartialEq, Serialize)]
+pub enum ScalarType {
     Integer,
     Character,
     Boolean,
@@ -138,6 +139,80 @@ impl DataType {
             )),
         }
     }
+
+    /// Tries to parse a function argument (param) into the corresponding rust code
+    ///
+    /// ### Example
+    ///
+    /// ```
+    /// let data_type = DataType {
+    ///     scalar_type: ScalarType::Character,
+    ///     vec_depth: 2,
+    /// };
+    /// let res = data_type.try_write_variable(r#"[["5","3"],["6","."]]"#);
+    /// let expected = "vec![vec!['5','3'],vec!['6','.']]".into();
+    /// assert_eq!(res, Ok(expected));
+    /// ```
+    pub fn try_write_variable(&self, value: &str) -> Result<String, String> {
+        try_write_variable_recur(self.scalar_type, value, self.vec_depth)
+    }
+}
+
+fn try_write_variable_recur(
+    scalar_type: ScalarType,
+    from: &str,
+    depth: u8,
+) -> Result<String, String> {
+    if depth == 0 {
+        return scalar_type.format(from);
+    }
+
+    let mut result = String::new();
+    let mut chars = from.chars();
+
+    if chars.next() == Some('[') {
+        result.push_str("vec![");
+    } else {
+        panic!("Expecting a leading '['");
+    }
+
+    let mut buffer = String::new();
+    let mut level = 0;
+
+    for c in chars {
+        match c {
+            '[' => {
+                buffer.push(c);
+                level += 1;
+            }
+            ']' => {
+                if level > 0 {
+                    buffer.push(c);
+                    level -= 1;
+                } else {
+                    if !buffer.is_empty() {
+                        // format the last element of the array (needed since there is no ending comma)
+                        let element = try_write_variable_recur(scalar_type, &buffer, depth - 1);
+                        result.push_str(&element?);
+                        buffer.clear();
+                    }
+                    result.push(']');
+                    break;
+                }
+            }
+            ',' if level == 0 => {
+                let element = try_write_variable_recur(scalar_type, &buffer, depth - 1);
+                result.push_str(&element?);
+                result.push(',');
+                buffer.clear();
+            }
+            _ => {
+                buffer.push(c);
+            }
+        }
+    }
+
+    Ok(result)
 }
 
 fn deserialize_data_type<'de, D>(deserializer: D) -> Result<DataType, D::Error>
@@ -166,6 +241,65 @@ impl FromStr for ScalarType {
             _ => Err(format!("{} is not a known scalar type", s)),
         }
     }
+}
+
+impl ScalarType {
+    fn format(&self, value: &str) -> Result<String, String> {
+        let formatted: String = match self {
+            ScalarType::Integer => value.into(),
+            ScalarType::Character => {
+                let c = value.chars().nth(1).ok_or(format!(
+                    r#"Erorr formatting the char {}, expecting someting like "c""#,
+                    value
+                ))?;
+                format!("'{}'", c)
+            }
+            ScalarType::Boolean => value.into(),
+            ScalarType::Long => value.into(),
+            ScalarType::String => format!("{}.into()", value),
+            ScalarType::ListNode => todo!("Parsing ListNode is not yet implemented !"),
+            ScalarType::Double => value.into(),
+            ScalarType::TreeNode => todo!("Parsing TreeNode is not yet implemented !"),
+            ScalarType::Void => todo!(),
+        };
+        Ok(formatted)
+    }
+}
+
+/// Tries grouping the example testcases fetched from leetcode into a nice list
+///
+/// ### Arguments
+///
+/// * `example_testcases` - The example testcases as string separated by `\n`
+/// * `params_amt` - The amount of parameters the function expects
+/// 
+/// ### Example
+/// 
+/// ```
+/// let example_testcases = "[4,5]\n0\n[6]\n8";
+/// let res = try_group_example_testcases(example_testcases, 2);
+/// let expected = vec![vec!["[4,5]".into(),"0".into()],vec!["[6]".into(),"8".into()]];
+/// assert_eq!(res, Ok(expected));
+/// ```
+pub fn try_group_example_testcases(
+    example_testcases: &str,
+    params_amt: usize,
+) -> Result<Vec<Vec<String>>, String> {
+    let lines: Vec<&str> = example_testcases.lines().collect();
+    let example_elements_amt = lines.len();
+    if example_elements_amt % params_amt != 0 {
+        return Err("Error grouping the example testcases into a list of groups of the same size as the parameters amount".into());
+    }
+
+    let mut res: Vec<Vec<String>> = Vec::new();
+    let groups_amt = example_elements_amt / params_amt;
+    for group in 0..groups_amt {
+        let ndx = group * params_amt;
+        let slice = &lines[ndx..ndx + params_amt];
+        res.push(slice.iter().map(|el| el.to_string()).collect());
+    }
+
+    Ok(res)
 }
 
 #[cfg(test)]
@@ -304,5 +438,52 @@ mod tests {
         };
         let res = format!("{}", char_type);
         assert_eq!(res, String::from("Vec<Vec<char>>"));
+    }
+
+    #[test]
+    fn test_group_example_testcases() {
+        let example_testcases = r"[4,5,6,7,0,1,2]
+0
+[4,5,6,7,0,1,2]
+3
+[1]
+0";
+        let res = try_group_example_testcases(example_testcases, 2);
+        let mut expected = Vec::new();
+        expected.push(vec!["[4,5,6,7,0,1,2]".into(), "0".into()]);
+        expected.push(vec!["[4,5,6,7,0,1,2]".into(), "3".into()]);
+        expected.push(vec!["[1]".into(), "0".into()]);
+        assert_eq!(res, Ok(expected));
+        
+        let example_testcases = r"single line";
+        let res = try_group_example_testcases(example_testcases, 2);
+        assert!(res.is_err());
+    }
+
+    #[test]
+    fn test_try_write_variable() {
+        let data_type = DataType {
+            scalar_type: ScalarType::Integer,
+            vec_depth: 1,
+        };
+        let res = data_type.try_write_variable("[1,2,3]");
+        let expected = "vec![1,2,3]".into();
+        assert_eq!(res, Ok(expected));
+
+        let data_type = DataType {
+            scalar_type: ScalarType::String,
+            vec_depth: 1,
+        };
+        let res = data_type.try_write_variable(r#"["hello"]"#);
+        let expected = r#"vec!["hello".into()]"#.into();
+        assert_eq!(res, Ok(expected));
+
+        let data_type = DataType {
+            scalar_type: ScalarType::Character,
+            vec_depth: 2,
+        };
+        let res = data_type.try_write_variable(r#"[["5","3"],["6","."]]"#);
+        let expected = "vec![vec!['5','3'],vec!['6','.']]".into();
+        assert_eq!(res, Ok(expected));
     }
 }

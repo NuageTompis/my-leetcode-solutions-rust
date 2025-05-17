@@ -1,6 +1,7 @@
 use colored::Colorize;
 
 use crate::fetch::{ProblemContent, ProblemJSON};
+use crate::molds_helper::try_create_test_module;
 use crate::parse_api::ProbMetaData;
 use crate::read_write::LocalReadResult;
 use crate::{fetch, read_write};
@@ -66,15 +67,18 @@ pub async fn handle_create_command(create: CreateCommand) {
             return;
         }
     };
-    // todo: add the test module and the test cases
+
+    println!("Trying to generate test module...");
+    let test_module_result = try_create_test_module(&example_testcases, &problem_content.metadata);
+    let test_module = match test_module_result {
+        Ok(module) => module,
+        Err(_) => {
+            return;
+        }
+    };
 
     println!("Trying to create a solution file...");
-    try_creating_solution_file(
-        problem_content,
-        &example_testcases,
-        create.problem_id,
-        &slug,
-    );
+    try_creating_solution_file(problem_content, &test_module, create.problem_id, &slug);
 }
 
 /// Tries finding the slug of a problem using the local file `slugs_and_ids.txt`
@@ -223,14 +227,15 @@ fn try_checking_if_user_is_premium() -> Result<bool, ()> {
 
 fn try_creating_solution_file(
     problem_content: ProblemContent,
-    example_testcases: &str,
+    test_module: &str,
     problem_id: u16,
     slug: &str,
 ) {
-    let content = apply_modifications_to_solution_file(
+    let mut content = apply_modifications_to_solution_file(
         problem_content.default_code,
         problem_content.metadata,
     );
+    content.push_str(test_module);
     let filename = format!("s{}_{}", problem_id, slug).replace('-', "_");
     let file_path = format!("./src/solutions/{}.rs", filename);
 
@@ -267,7 +272,17 @@ fn apply_modifications_to_solution_file(content: String, metadata: ProbMetaData)
 
     for pattern in PATTERNS_TO_GIVE_TEST_ATTRIBUTE {
         let concat = format!("{}{}", TEST_COMPILER_CONFIGURATION_ATTRIBUTE, pattern);
-        content = content.replace(pattern, &concat);
+         content = content
+            .lines()
+            .map(|line| {
+                if line.starts_with("// ") {
+                    line.to_string()
+                } else {
+                    line.replace(pattern, &concat)
+                }
+            })
+            .collect::<Vec<String>>()
+            .join("\n");
     }
 
     content

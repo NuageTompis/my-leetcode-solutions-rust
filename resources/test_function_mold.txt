@@ -1,4 +1,5 @@
-#[test]
+
+
+    #[test]
     fn example_%EXAMPLE_ID%() {
-        %CONTENT%
-    }
+%CONTENT%    }

@@ -8,6 +8,7 @@ mod fetch;
 mod parse_api;
 mod read_write;
 mod solutions;
+mod molds_helper;
 
 #[tokio::main]
 async fn main() {
