@@ -56,7 +56,7 @@ pub fn to_tree(values: Vec<Option<i32>>) -> Option<Rc<RefCell<TreeNode>>> {
 
 /// ### Description
 ///
-/// Creates a TreeNode from an array provided by leetcode.
+/// Creates a `[TreeNode]` from an array provided by leetcode.
 ///
 /// In the given array, the pair of elements at indices (`2n+1`, `2n+2`) represents the children of the node at index `n`
 ///
@@ -82,7 +82,7 @@ pub fn to_tree(values: Vec<Option<i32>>) -> Option<Rc<RefCell<TreeNode>>> {
 ///
 /// ### Credits
 ///
-/// This code comes from here: https://github.com/aylei/leetcode-rust/blob/master/src/util/tree.rs
+/// This code comes from [this source](https://github.com/aylei/leetcode-rust/blob/master/src/util/tree.rs)
 #[macro_export]
 macro_rules! tree {
     () => {

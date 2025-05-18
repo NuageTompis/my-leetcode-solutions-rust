@@ -73,14 +73,23 @@ pub fn try_create_test_module(
         .params
         .iter()
         .any(|param| param._type.scalar_type == ScalarType::TreeNode);
-    let additional_imports_replacement = if has_tree_node {
+    let has_list_node = metadata
+        .params
+        .iter()
+        .any(|param| param._type.scalar_type == ScalarType::ListNode);
+    let mut additional_imports_replacement = if has_tree_node {
         "\n    use crate::tree;"
     } else {
         ""
-    };
+    }
+    .to_owned();
+    if has_list_node {
+        additional_imports_replacement.push_str("\n    use crate::linked;");
+    }
+
     let module_mold = module_mold.replace(
         TEST_MODULE_ADDITIONAL_IMPORTS_PATTERN,
-        additional_imports_replacement,
+        &additional_imports_replacement,
     );
 
     Ok(module_mold.replace(TEST_MODULE_FUNCTIONS_PATTERN, &functions_str))

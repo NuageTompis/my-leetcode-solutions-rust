@@ -15,12 +15,13 @@ const PREMIUM_COMMAND: &str = "`cargo conf premium (0 or 1)`";
 const NO_PREMIUM_ERR: &str = "This problem seems to be premium-only but you are registered as a free-user. Please run `cargo conf premium 1` if you are premium.";
 
 const TEST_COMPILER_CONFIGURATION_ATTRIBUTE: &str = "#[cfg(test)]\n";
-const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 5] = [
+const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 6] = [
     "impl ",
     "struct ",
     "use std::cell::RefCell;",
     "use std::rc::Rc;",
     "use crate::tree::TreeNode;",
+    "use crate::linked_list::ListNode;",
 ];
 
 pub async fn handle_create_command(create: CreateCommand) {
@@ -283,6 +284,13 @@ fn apply_modifications_to_solution_file(content: String, metadata: ProbMetaData)
             .any(|param| param._type.scalar_type == ScalarType::TreeNode);
         if has_tree_node {
             content = format!("use crate::tree::TreeNode;\n{}", content)
+        }
+        let has_list_node = function_metadata
+            .params
+            .iter()
+            .any(|param| param._type.scalar_type == ScalarType::ListNode);
+        if has_list_node {
+            content = format!("use crate::linked_list::ListNode;\n{}", content)
         }
     }
 

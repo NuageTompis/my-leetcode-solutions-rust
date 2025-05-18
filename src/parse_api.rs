@@ -266,7 +266,7 @@ impl ScalarType {
             ScalarType::Boolean => value.into(),
             ScalarType::Long => value.into(),
             ScalarType::String => format!("{}.into()", value),
-            ScalarType::ListNode => todo!("Parsing ListNode is not yet implemented !"),
+            ScalarType::ListNode => format!("linked!{}", value),
             ScalarType::Double => value.into(),
             ScalarType::TreeNode => format!("tree!{}", value),
             ScalarType::Void => todo!(),
