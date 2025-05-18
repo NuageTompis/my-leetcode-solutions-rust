@@ -2,7 +2,7 @@ use colored::Colorize;
 
 use crate::fetch::{ProblemContent, ProblemJSON};
 use crate::molds_helper::try_create_test_module;
-use crate::parse_api::ProbMetaData;
+use crate::parse_api::{ProbMetaData, ScalarType};
 use crate::read_write::LocalReadResult;
 use crate::{fetch, read_write};
 
@@ -15,7 +15,13 @@ const PREMIUM_COMMAND: &str = "`cargo conf premium (0 or 1)`";
 const NO_PREMIUM_ERR: &str = "This problem seems to be premium-only but you are registered as a free-user. Please run `cargo conf premium 1` if you are premium.";
 
 const TEST_COMPILER_CONFIGURATION_ATTRIBUTE: &str = "#[cfg(test)]\n";
-const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 2] = ["impl ", "struct "];
+const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 5] = [
+    "impl ",
+    "struct ",
+    "use std::cell::RefCell;",
+    "use std::rc::Rc;",
+    "use crate::tree::TreeNode;",
+];
 
 pub async fn handle_create_command(create: CreateCommand) {
     println!("Checking if you're premium...");
@@ -270,9 +276,19 @@ fn apply_modifications_to_solution_file(content: String, metadata: ProbMetaData)
         content
     };
 
+    if let ProbMetaData::Function(function_metadata) = metadata {
+        let has_tree_node = function_metadata
+            .params
+            .iter()
+            .any(|param| param._type.scalar_type == ScalarType::TreeNode);
+        if has_tree_node {
+            content = format!("use crate::tree::TreeNode;\n{}", content)
+        }
+    }
+
     for pattern in PATTERNS_TO_GIVE_TEST_ATTRIBUTE {
         let concat = format!("{}{}", TEST_COMPILER_CONFIGURATION_ATTRIBUTE, pattern);
-         content = content
+        content = content
             .lines()
             .map(|line| {
                 if line.starts_with("// ") {

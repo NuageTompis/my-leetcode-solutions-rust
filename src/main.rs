@@ -9,6 +9,7 @@ mod parse_api;
 mod read_write;
 mod solutions;
 mod molds_helper;
+mod tree;
 
 #[tokio::main]
 async fn main() {

@@ -1,18 +1,24 @@
 use crate::{
-    parse_api::{try_group_example_testcases, FunctionMetaData, ParamJson, ProbMetaData},
+    parse_api::{
+        try_group_example_testcases, FunctionMetaData, ParamJson, ProbMetaData, ScalarType,
+    },
     read_write,
 };
 
 const TEST_FUNCTION_ID_PATTERN: &str = "%EXAMPLE_ID%";
 const TEST_FUNCTION_CONTENT_PATTERN: &str = "%CONTENT%";
 const TEST_MODULE_FUNCTIONS_PATTERN: &str = "%TEST_FUNCTIONS%";
+const TEST_MODULE_ADDITIONAL_IMPORTS_PATTERN: &str = "%ADDITIONAL_IMPORTS%";
 
 pub fn try_create_test_module(
     example_testcases: &str,
     metadata: &ProbMetaData,
 ) -> Result<String, ()> {
+    // consider function problems only (for now)
     let metadata = match metadata {
-        ProbMetaData::Class(_) => todo!("Test module generation for class problems is not yet implemented !"),
+        ProbMetaData::Class(_) => {
+            todo!("Test module generation for class problems is not yet implemented !")
+        }
         ProbMetaData::Function(function_meta_data) => function_meta_data,
     };
 
@@ -61,6 +67,21 @@ pub fn try_create_test_module(
         };
         functions_str.push_str(&test_function);
     }
+
+    // add eventual imports
+    let has_tree_node = metadata
+        .params
+        .iter()
+        .any(|param| param._type.scalar_type == ScalarType::TreeNode);
+    let additional_imports_replacement = if has_tree_node {
+        "\n    use crate::tree;"
+    } else {
+        ""
+    };
+    let module_mold = module_mold.replace(
+        TEST_MODULE_ADDITIONAL_IMPORTS_PATTERN,
+        additional_imports_replacement,
+    );
 
     Ok(module_mold.replace(TEST_MODULE_FUNCTIONS_PATTERN, &functions_str))
 }
@@ -141,7 +162,9 @@ mod tests {
             }),
         });
         let res = try_create_test_module(example_testcases, &metadata);
-        let expected = r"#[cfg(test)]
+        let expected = r"
+
+#[cfg(test)]
 mod tests {
     use super::*;
 
@@ -150,6 +173,46 @@ mod tests {
         let nums: Vec<i32> = vec![4,5,6,7,0,1,2];
         let target: i32 = 0;
         let res = Solution::search(nums, target);
+        let expected: i32 = todo!(); // Fill in this value
+        assert_eq!(res, expected);
+    }
+}"
+        .into();
+        assert_eq!(res, Ok(expected));
+    }
+
+    #[test]
+    fn test_create_test_module_with_tree_node() {
+        let example_testcases = r"[1,null,2]";
+        let params: Vec<ParamJson> = vec![ParamJson {
+            name: "tree".into(),
+            _type: DataType {
+                scalar_type: ScalarType::TreeNode,
+                vec_depth: 0,
+            },
+        }];
+        let metadata = ProbMetaData::Function(FunctionMetaData {
+            name: "hug".into(),
+            params: params.clone(),
+            _return: Some(ReturnJson {
+                _type: DataType {
+                    scalar_type: ScalarType::Integer,
+                    vec_depth: 0,
+                },
+            }),
+        });
+        let res = try_create_test_module(example_testcases, &metadata);
+        let expected = r"
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tree;
+
+    #[test]
+    fn example_1() {
+        let tree: Option<Rc<RefCell<TreeNode>>> = tree![1,null,2];
+        let res = Solution::hug(tree);
         let expected: i32 = todo!(); // Fill in this value
         assert_eq!(res, expected);
     }

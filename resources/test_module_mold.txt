@@ -2,5 +2,5 @@
 
 #[cfg(test)]
 mod tests {
-    use super::*;%TEST_FUNCTIONS%
+    use super::*;%ADDITIONAL_IMPORTS%%TEST_FUNCTIONS%
 }

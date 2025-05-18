@@ -29,6 +29,7 @@ struct ConstructorJson {
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct FunctionMetaData {
+    #[serde(deserialize_with = "deserialize_pascal_to_snake_case")]
     pub name: String,
     pub params: Vec<ParamJson>,
     #[serde(rename = "return")]
@@ -223,6 +224,14 @@ where
     DataType::from_str(&s).map_err(de::Error::custom)
 }
 
+fn deserialize_pascal_to_snake_case<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s: String = Deserialize::deserialize(deserializer)?;
+    Ok(s.snake_case())
+}
+
 impl FromStr for ScalarType {
     type Err = String;
 
@@ -259,7 +268,7 @@ impl ScalarType {
             ScalarType::String => format!("{}.into()", value),
             ScalarType::ListNode => todo!("Parsing ListNode is not yet implemented !"),
             ScalarType::Double => value.into(),
-            ScalarType::TreeNode => todo!("Parsing TreeNode is not yet implemented !"),
+            ScalarType::TreeNode => format!("tree!{}", value),
             ScalarType::Void => todo!(),
         };
         Ok(formatted)
@@ -272,9 +281,9 @@ impl ScalarType {
 ///
 /// * `example_testcases` - The example testcases as string separated by `\n`
 /// * `params_amt` - The amount of parameters the function expects
-/// 
+///
 /// ### Example
-/// 
+///
 /// ```
 /// let example_testcases = "[4,5]\n0\n[6]\n8";
 /// let res = try_group_example_testcases(example_testcases, 2);
@@ -302,6 +311,32 @@ pub fn try_group_example_testcases(
     Ok(res)
 }
 
+pub trait SnakeCase {
+    fn snake_case(&self) -> String;
+}
+
+impl SnakeCase for str {
+    fn snake_case(&self) -> String {
+        let mut res = String::new();
+        for c in self.chars() {
+            match c {
+                'A'..='Z' => {
+                    res.push('_');
+                    res.push_str(&c.to_lowercase().to_string());
+                }
+                'a'..='z' => {
+                    res.push(c);
+                }
+                _ => panic!(
+                    "Incorrect character '{}' found, expecting a pascal case string",
+                    c
+                ),
+            }
+        }
+        res
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -326,7 +361,7 @@ mod tests {
         "#;
         let res = serde_json::from_str::<ProbMetaData>(metadata);
         let expected = ProbMetaData::Function(FunctionMetaData {
-            name: "spiralOrder".into(),
+            name: "spiral_order".into(),
             params: vec![ParamJson {
                 name: "matrix".into(),
                 _type: DataType {
@@ -454,7 +489,7 @@ mod tests {
         expected.push(vec!["[4,5,6,7,0,1,2]".into(), "3".into()]);
         expected.push(vec!["[1]".into(), "0".into()]);
         assert_eq!(res, Ok(expected));
-        
+
         let example_testcases = r"single line";
         let res = try_group_example_testcases(example_testcases, 2);
         assert!(res.is_err());

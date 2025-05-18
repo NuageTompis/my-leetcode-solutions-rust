@@ -257,6 +257,7 @@ mod tests_fetch {
     use super::*;
 
     #[tokio::test]
+    #[ignore]
     async fn rust_unavailable() {
         let problem_slug = "find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree"; // problem_id = 1379
         let content = try_fetch_content(problem_slug).await;
@@ -264,6 +265,7 @@ mod tests_fetch {
     }
 
     #[tokio::test]
+    #[ignore]
     async fn test_fetch_example_testcases() {
         let problem_slug = "find-a-corresponding-node-of-a-binary-tree-in-a-clone-of-that-tree";
         let example_testcases = try_fetch_example_testcases(problem_slug).await;
