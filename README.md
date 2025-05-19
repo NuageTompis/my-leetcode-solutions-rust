@@ -12,11 +12,11 @@
 - [ ] Add the test module to the generated solution file
   - [ ] We should interpret the example testcases
     - [ ] Handle function attributes modifiers (`&,` `&mut`)
-    - [ ] Handle `ListNode` data types
+    - [x] Handle `ListNode` data types
     - [x] Handle `TreeNode` data types
   - [x] The expected return is not defined in the example testcases, we should decide what to write (a `todo!` macro ?)
   - Progress
     - [x] Done for *Function* problems (except elements listed above)
     - [ ] Todo for *Class* problems
 - [ ] We should refactor the Json names in the `fetch` script
-- [ ] Add a preference/flag to use the `#[allow(dead_code)]` attribute for a solution module instead of using `#[cfg(test)]` for every struct, function, etc. to avoid rust warnings
+- [x] Add a preference/flag to use the `#[allow(dead_code)]` attribute for a solution module instead of using `#[cfg(test)]` for every struct, function, etc. to avoid rust warnings

@@ -60,7 +60,10 @@ pub enum ConfigSubcommand {
     /// Tell leetcrust if you are a premium leetcode user (0 or 1)
     /// This will be used for better error-handling
     #[clap(verbatim_doc_comment)]
-    Premium(PremiumCommand)
+    Premium(PremiumCommand),
+    
+    // Use the #[allow(dead_code)] attribute instead of the #[cfg(test)] one to escape rust's warnings
+    AllowDeadCode(AllowDeadCodeCommand)
 }
 
 #[derive(Args, Debug)]
@@ -77,4 +80,10 @@ pub struct CookieCommand {
 pub struct PremiumCommand {
     /// 0 or 1
     pub premium: u8,
+}
+
+#[derive(Args, Debug)]
+pub struct AllowDeadCodeCommand {
+    /// 0 or 1
+    pub allow_dead_code: u8,
 }

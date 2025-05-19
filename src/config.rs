@@ -6,22 +6,42 @@ pub fn handle_config_command(config: ConfigCommand) {
         ConfigSubcommand::Username(username_command) => ("username", username_command.username),
         ConfigSubcommand::Cookie(cookie_command) => ("cookie", cookie_command.cookie),
         ConfigSubcommand::Premium(premium_command) => {
-            if premium_command.premium >= 2 {
-                println!("The premium value {} is not valid, it should be either 0 or 1", {premium_command.premium});
-                return;
+            let res = assert_valid_u8_bool(premium_command.premium, "premium");
+            if let Ok(res) = res {
+                res
             } else {
-                ("premium", premium_command.premium.to_string())
+                return;
             }
-        },
+        }
+        ConfigSubcommand::AllowDeadCode(allow_dead_code_command) => {
+            let res = assert_valid_u8_bool(allow_dead_code_command.allow_dead_code, "allow_dead_code");
+            if let Ok(res) = res {
+                res
+            } else {
+                return;
+            }
+        }
     };
 
     let result = read_write::try_update_env_variable(variable, &value);
     match result {
         Ok(_) => {
             println!("Sucessfully wrote {} to .env", variable);
-        },
+        }
         Err(e) => {
             println!("Unexpected error while handling config command: {}.", e);
         }
+    }
+}
+
+fn assert_valid_u8_bool(val: u8, name: &str) -> Result<(&str, String), ()> {
+    if val > 2 {
+        println!(
+            "The {} value {} is not valid, it should be either 0 or 1",
+            name, val
+        );
+        Err(())
+    } else {
+        Ok((name, val.to_string()))
     }
 }

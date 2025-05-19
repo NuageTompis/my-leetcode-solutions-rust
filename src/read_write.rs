@@ -4,6 +4,10 @@ use std::{
     path::Path,
 };
 
+use colored::Colorize;
+
+use crate::create::UNEXPECTED_ERR_HEADER;
+
 const ENV_PATH: &str = ".env";
 const SLUGS_PATH: &str = "resources/slugs_and_ids.txt";
 const SOLUTION_MOD_PATH: &str = "./src/solutions/mod.rs";
@@ -44,6 +48,72 @@ pub fn try_update_env_variable(variable: &str, value: &str) -> Result<(), io::Er
     Ok(())
 }
 
+/// Reads the `.env` file and searches for the given boolean variable (0 or 1)
+///
+/// Defaults to `false` if no unexpected error occurs
+pub fn try_reading_boolean_env_variable(
+    variable_name: &str,
+    suggested_command: &str,
+    explanation: &str,
+) -> Result<bool, ()> {
+    let variable_read_res: LocalReadResult<String> = try_read_variable(variable_name, '=');
+    let value = match variable_read_res {
+        LocalReadResult::Found(value) => {
+            let parse_res = value.parse::<u8>();
+            match parse_res {
+                Ok(val) => match val {
+                    0 => false,
+                    1 => true,
+                    _ => {
+                        println!(
+                            "{} reading {} bool from .env, it should be 0 or 1",
+                            UNEXPECTED_ERR_HEADER.red().bold(),
+                            variable_name
+                        );
+                        return Err(());
+                    }
+                },
+                Err(_) => {
+                    println!(
+                        "{} parsing {} bool from .env, it should be 0 or 1",
+                        UNEXPECTED_ERR_HEADER.red().bold(),
+                        variable_name
+                    );
+                    return Err(());
+                }
+            }
+        }
+        LocalReadResult::FileMissing => {
+            println!(
+                "There is no .env file, please use {} to create it",
+                suggested_command
+            );
+            false
+        }
+        LocalReadResult::LineMissing => {
+            println!("{} by running {}", explanation, suggested_command);
+            false
+        }
+        LocalReadResult::LineCorrupted => {
+            println!(
+                "The .env line with the {} variable seems to be corrupted. Please run {}",
+                variable_name, suggested_command
+            );
+            false
+        }
+        LocalReadResult::UnexpectedError => {
+            println!(
+                "{} trying to read {} variable in .env",
+                UNEXPECTED_ERR_HEADER.red().bold(),
+                variable_name
+            );
+            false
+        }
+    };
+
+    Ok(value)
+}
+
 pub fn try_read_test_function_mold() -> Result<String, io::Error> {
     fs::read_to_string(TEST_FUNCTION_MOLD_PATH)
 }
@@ -66,7 +136,7 @@ pub fn try_write_solution_template(path: &str, content: &str) -> Result<(), io::
     }
 }
 
-pub fn try_append_solution_module(filename: &str) -> Result<(), io::Error> {
+pub fn try_append_solution_module(filename: &str, allow_dead_code: bool) -> Result<(), io::Error> {
     let mod_file = Path::new(SOLUTION_MOD_PATH);
 
     let mut file = OpenOptions::new()
@@ -75,7 +145,12 @@ pub fn try_append_solution_module(filename: &str) -> Result<(), io::Error> {
         .or_else(|_| File::create(mod_file))
         .unwrap();
 
-    let content = format!("mod {};\n", filename);
+    let mut content = if allow_dead_code {
+        String::from("#[allow(dead_code)]\n")
+    } else {
+        String::new()
+    };
+    content.push_str(&format!("mod {};\n", filename));
     file.write_all(content.as_bytes())
 }
 

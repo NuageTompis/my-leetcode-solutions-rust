@@ -3,7 +3,7 @@ use colored::Colorize;
 use crate::fetch::{ProblemContent, ProblemJSON};
 use crate::molds_helper::try_create_test_module;
 use crate::parse_api::{ProbMetaData, ScalarType};
-use crate::read_write::LocalReadResult;
+use crate::read_write::{try_reading_boolean_env_variable, LocalReadResult};
 use crate::{fetch, read_write};
 
 use crate::args::CreateCommand;
@@ -11,6 +11,7 @@ use crate::args::CreateCommand;
 pub const UNEXPECTED_ERR_HEADER: &str = "Unexpected error while";
 const ERR_HEADER: &str = "Error while";
 const PREMIUM_COMMAND: &str = "`cargo conf premium (0 or 1)`";
+const ALLOW_DEAD_CODE_COMMAND: &str = "`cargo conf allow-dead-code (0 or 1)`";
 
 const NO_PREMIUM_ERR: &str = "This problem seems to be premium-only but you are registered as a free-user. Please run `cargo conf premium 1` if you are premium.";
 
@@ -29,9 +30,14 @@ pub async fn handle_create_command(create: CreateCommand) {
     let premium_res = try_checking_if_user_is_premium();
     let premium = match premium_res {
         Ok(premium) => premium,
-        Err(_) => {
-            return;
-        }
+        Err(_) => return,
+    };
+
+    println!("Checking how you'd like to escape rust's dead code warnings...");
+    let allow_dead_code_res = try_checking_if_user_wants_allow_dead_code();
+    let allow_dead_code = match allow_dead_code_res {
+        Ok(allow) => allow,
+        Err(_) => return,
     };
 
     println!("Trying to find slug locally...");
@@ -85,7 +91,13 @@ pub async fn handle_create_command(create: CreateCommand) {
     };
 
     println!("Trying to create a solution file...");
-    try_creating_solution_file(problem_content, &test_module, create.problem_id, &slug);
+    try_creating_solution_file(
+        problem_content,
+        &test_module,
+        create.problem_id,
+        &slug,
+        allow_dead_code,
+    );
 }
 
 /// Tries finding the slug of a problem using the local file `slugs_and_ids.txt`
@@ -174,62 +186,16 @@ async fn try_fetch_slug(problem_id: u16, premium: bool) -> Result<String, ()> {
 
 /// Reads the `.env` file and searches if the user is premium
 fn try_checking_if_user_is_premium() -> Result<bool, ()> {
-    let premium_read_res: LocalReadResult<String> = read_write::try_read_variable("premium", '=');
-    let premium = match premium_read_res {
-        LocalReadResult::Found(value) => {
-            let parse_res = value.parse::<u8>();
-            match parse_res {
-                Ok(val) => match val {
-                    0 => false,
-                    1 => true,
-                    _ => {
-                        println!(
-                            "{} reading premium bool from .env, it should be 0 or 1",
-                            UNEXPECTED_ERR_HEADER.red().bold()
-                        );
-                        return Err(());
-                    }
-                },
-                Err(_) => {
-                    println!(
-                        "{} parsing premium bool from .env, it should be 0 or 1",
-                        UNEXPECTED_ERR_HEADER.red().bold()
-                    );
-                    return Err(());
-                }
-            }
-        }
-        LocalReadResult::FileMissing => {
-            println!(
-                "There is no .env file, please use {} to create it",
-                PREMIUM_COMMAND
-            );
-            false
-        }
-        LocalReadResult::LineMissing => {
-            println!(
-                "Please specify if you're a premium leetcode user by running {}",
-                PREMIUM_COMMAND
-            );
-            false
-        }
-        LocalReadResult::LineCorrupted => {
-            println!(
-                "The .env line with the premium variable seems to be corrupted. Please run {}",
-                PREMIUM_COMMAND
-            );
-            false
-        }
-        LocalReadResult::UnexpectedError => {
-            println!(
-                "{} trying to read premium variable in .env",
-                UNEXPECTED_ERR_HEADER.red().bold()
-            );
-            false
-        }
-    };
+    try_reading_boolean_env_variable(
+        "premium",
+        PREMIUM_COMMAND,
+        "Please specify if you're a premium leetcode user",
+    )
+}
 
-    Ok(premium)
+/// Reads the `.env` file and searches if the user is premium
+fn try_checking_if_user_wants_allow_dead_code() -> Result<bool, ()> {
+    try_reading_boolean_env_variable("allow_dead_code", ALLOW_DEAD_CODE_COMMAND, "Please specify if you'd like to escape rust's warnings by using the #[allow(dead_code)] attribute")
 }
 
 fn try_creating_solution_file(
@@ -237,10 +203,12 @@ fn try_creating_solution_file(
     test_module: &str,
     problem_id: u16,
     slug: &str,
+    allow_dead_code: bool,
 ) {
     let mut content = apply_modifications_to_solution_file(
         problem_content.default_code,
         problem_content.metadata,
+        allow_dead_code,
     );
     content.push_str(test_module);
     let filename = format!("s{}_{}", problem_id, slug).replace('-', "_");
@@ -255,7 +223,7 @@ fn try_creating_solution_file(
                 file_path
             );
             // declares the newly created module file so that it is included in unit tests
-            let append_mod_res = read_write::try_append_solution_module(&filename);
+            let append_mod_res = read_write::try_append_solution_module(&filename, allow_dead_code);
             if let Err(e) = append_mod_res {
                 println!(
                     "{} declaring module of solution file: {}",
@@ -270,7 +238,11 @@ fn try_creating_solution_file(
     }
 }
 
-fn apply_modifications_to_solution_file(content: String, metadata: ProbMetaData) -> String {
+fn apply_modifications_to_solution_file(
+    content: String,
+    metadata: ProbMetaData,
+    allow_dead_code: bool,
+) -> String {
     let mut content = if let ProbMetaData::Function(_) = metadata {
         format!("struct Solution;\n\n{}", content)
     } else {
@@ -294,19 +266,21 @@ fn apply_modifications_to_solution_file(content: String, metadata: ProbMetaData)
         }
     }
 
-    for pattern in PATTERNS_TO_GIVE_TEST_ATTRIBUTE {
-        let concat = format!("{}{}", TEST_COMPILER_CONFIGURATION_ATTRIBUTE, pattern);
-        content = content
-            .lines()
-            .map(|line| {
-                if line.starts_with("// ") {
-                    line.to_string()
-                } else {
-                    line.replace(pattern, &concat)
-                }
-            })
-            .collect::<Vec<String>>()
-            .join("\n");
+    if !allow_dead_code {
+        for pattern in PATTERNS_TO_GIVE_TEST_ATTRIBUTE {
+            let concat = format!("{}{}", TEST_COMPILER_CONFIGURATION_ATTRIBUTE, pattern);
+            content = content
+                .lines()
+                .map(|line| {
+                    if line.starts_with("// ") {
+                        line.to_string()
+                    } else {
+                        line.replace(pattern, &concat)
+                    }
+                })
+                .collect::<Vec<String>>()
+                .join("\n");
+        }
     }
 
     content
