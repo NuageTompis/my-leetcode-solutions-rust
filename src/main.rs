@@ -2,6 +2,7 @@ use args::LCArgs;
 use clap::Parser;
 
 mod args;
+mod clip;
 mod config;
 mod create;
 mod fetch;
@@ -15,15 +16,19 @@ mod tree;
 #[tokio::main]
 async fn main() {
     let args = LCArgs::parse();
+    use args::MainCommand as MC;
     match args.arg_type {
-        args::MainCommand::Config(config) => {
+        MC::Config(config) => {
             config::handle_config_command(config);
         }
-        args::MainCommand::Create(create) => {
-            create::handle_create_command(create).await;
+        MC::Create(create) => {
+            let _res = create::handle_create_command(create).await;
         }
-        args::MainCommand::Fetch(fetch) => {
+        MC::Fetch(fetch) => {
             fetch::handle_fetch_command(fetch);
+        }
+        MC::Clip(problem_id_command) => {
+            let _res = clip::handle_clip_command(problem_id_command).await;
         }
     }
 }

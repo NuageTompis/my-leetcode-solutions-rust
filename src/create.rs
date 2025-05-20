@@ -3,17 +3,16 @@ use colored::Colorize;
 use crate::fetch::{ProblemContent, ProblemJSON};
 use crate::molds_helper::try_create_test_module;
 use crate::parse_api::{ProbMetaData, ScalarType};
-use crate::read_write::{try_reading_boolean_env_variable, LocalReadResult};
 use crate::{fetch, read_write};
 
-use crate::args::CreateCommand;
+use crate::args::ProblemIdCommand;
 
 pub const UNEXPECTED_ERR_HEADER: &str = "Unexpected error while";
 const ERR_HEADER: &str = "Error while";
 const PREMIUM_COMMAND: &str = "`cargo conf premium (0 or 1)`";
 const ALLOW_DEAD_CODE_COMMAND: &str = "`cargo conf allow-dead-code (0 or 1)`";
 
-const NO_PREMIUM_ERR: &str = "This problem seems to be premium-only but you are registered as a free-user. Please run `cargo conf premium 1` if you are premium.";
+pub const NO_PREMIUM_ERR: &str = "This problem seems to be premium-only but you are registered as a free-user. Please run `cargo conf premium 1` if you are premium.";
 
 const TEST_COMPILER_CONFIGURATION_ATTRIBUTE: &str = "#[cfg(test)]\n";
 const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 6] = [
@@ -25,70 +24,41 @@ const PATTERNS_TO_GIVE_TEST_ATTRIBUTE: [&str; 6] = [
     "use crate::linked_list::ListNode;",
 ];
 
-pub async fn handle_create_command(create: CreateCommand) {
+pub const SOLUTION_STRUCT_PATTERN: &str = "struct Solution;\n\n";
+pub const USE_TREENODE_PATTERN: &str = "use crate::tree::TreeNode;\n";
+pub const USE_LISTNODE_PATTERN: &str = "use crate::linked_list::ListNode;\n";
+
+pub async fn handle_create_command(create: ProblemIdCommand) -> Result<(), ()> {
     println!("Checking if you're premium...");
-    let premium_res = try_checking_if_user_is_premium();
-    let premium = match premium_res {
-        Ok(premium) => premium,
-        Err(_) => return,
-    };
+    let premium = try_checking_if_user_is_premium()?;
 
     println!("Checking how you'd like to escape rust's dead code warnings...");
-    let allow_dead_code_res = try_checking_if_user_wants_allow_dead_code();
-    let allow_dead_code = match allow_dead_code_res {
-        Ok(allow) => allow,
-        Err(_) => return,
-    };
+    let allow_dead_code = try_checking_if_user_wants_allow_dead_code()?;
 
     println!("Trying to find slug locally...");
-    let slug_local_read_result = try_read_slug_locally(create.problem_id, premium);
-    let slug_option = match slug_local_read_result {
-        Ok(slug) => slug,
-        Err(_) => {
-            return;
-        }
-    };
+    let slug_option = read_write::try_read_slug_locally(create.problem_id, premium)?;
 
     let slug = if let Some(slug) = slug_option {
         slug
     } else {
         println!("Couldn't find slug locally, trying to fetch it...");
-        let slug_fetch_result = try_fetch_slug(create.problem_id, premium).await;
-        match slug_fetch_result {
-            Ok(slug) => slug,
-            Err(_) => {
-                return;
-            }
-        }
+        try_fetch_slug(create.problem_id, premium).await?
     };
 
     println!("Trying to fetch problem content...");
-    let content_fetch_result = fetch::try_fetch_content(&slug).await;
-    let problem_content = match content_fetch_result {
-        Ok(val) => val,
-        Err(e) => {
-            e.log(create.problem_id);
-            return;
-        }
-    };
+    let problem_content = fetch::try_fetch_content(&slug).await.map_err(|e| {
+        e.log(create.problem_id);
+    })?;
 
     println!("Trying to fetch problem example testcases...");
-    let example_testcases_result = fetch::try_fetch_example_testcases(&slug).await;
-    let example_testcases = match example_testcases_result {
-        Ok(ex_testcases) => ex_testcases,
-        Err(_) => {
-            return;
-        }
-    };
+    let example_testcases = fetch::try_fetch_example_testcases(&slug)
+        .await
+        .map_err(|e| {
+            e.log(create.problem_id);
+        })?;
 
     println!("Trying to generate test module...");
-    let test_module_result = try_create_test_module(&example_testcases, &problem_content.metadata);
-    let test_module = match test_module_result {
-        Ok(module) => module,
-        Err(_) => {
-            return;
-        }
-    };
+    let test_module = try_create_test_module(&example_testcases, &problem_content.metadata)?;
 
     println!("Trying to create a solution file...");
     try_creating_solution_file(
@@ -98,65 +68,8 @@ pub async fn handle_create_command(create: CreateCommand) {
         &slug,
         allow_dead_code,
     );
-}
 
-/// Tries finding the slug of a problem using the local file `slugs_and_ids.txt`
-///
-/// It will return an error if we sould abort (eg the problem is premium-only but the user is not premium), or an Option<String> if we should continue
-///
-/// ### Arguments
-///
-/// * `problem_id` - The (front-end) id of the problem
-/// * `premium` - The boolean describing if the user declared himself as premium or not
-fn try_read_slug_locally(problem_id: u16, premium: bool) -> Result<Option<String>, ()> {
-    let slug_read_res: LocalReadResult<(String, String)> =
-        read_write::try_read_variable(&problem_id.to_string(), ',');
-    let slug = match slug_read_res {
-        LocalReadResult::Found((slug, prem)) => {
-            // prem should be either 0 or 1
-            let prem = match prem.parse::<u8>() {
-                Ok(val) => match val {
-                    0 => Some(false),
-                    1 => Some(true),
-                    _ => None,
-                },
-                Err(_) => None,
-            };
-            let prem = match prem {
-                Some(prem) => prem,
-                None => {
-                    println!(
-                        "{} parsing premium value locally for problem {}",
-                        UNEXPECTED_ERR_HEADER.red().bold(),
-                        problem_id
-                    );
-                    return Err(());
-                }
-            };
-            if prem && !premium {
-                println!("{}", NO_PREMIUM_ERR);
-                return Err(());
-            }
-            Some(slug)
-        }
-        LocalReadResult::FileMissing => {
-            println!("File `slugs_and_ids` missing, creating it...");
-            None
-        }
-        LocalReadResult::LineMissing => None,
-        LocalReadResult::LineCorrupted => {
-            println!("We did find problem {} locally but the line seems to be corrupted. Starting api call...", problem_id);
-            None
-        }
-        LocalReadResult::UnexpectedError => {
-            println!(
-                "{} reading slug locally.",
-                UNEXPECTED_ERR_HEADER.red().bold()
-            );
-            None
-        }
-    };
-    Ok(slug)
+    Ok(())
 }
 
 /// Starts by fetching all problems slugs from leetcode's api, then update `slugs_and_ids.txt`, then looks for the given problem's slug
@@ -186,7 +99,7 @@ async fn try_fetch_slug(problem_id: u16, premium: bool) -> Result<String, ()> {
 
 /// Reads the `.env` file and searches if the user is premium
 fn try_checking_if_user_is_premium() -> Result<bool, ()> {
-    try_reading_boolean_env_variable(
+    read_write::try_reading_boolean_env_variable(
         "premium",
         PREMIUM_COMMAND,
         "Please specify if you're a premium leetcode user",
@@ -195,7 +108,7 @@ fn try_checking_if_user_is_premium() -> Result<bool, ()> {
 
 /// Reads the `.env` file and searches if the user is premium
 fn try_checking_if_user_wants_allow_dead_code() -> Result<bool, ()> {
-    try_reading_boolean_env_variable("allow_dead_code", ALLOW_DEAD_CODE_COMMAND, "Please specify if you'd like to escape rust's warnings by using the #[allow(dead_code)] attribute")
+    read_write::try_reading_boolean_env_variable("allow_dead_code", ALLOW_DEAD_CODE_COMMAND, "Please specify if you'd like to escape rust's warnings by using the #[allow(dead_code)] attribute")
 }
 
 fn try_creating_solution_file(
@@ -244,7 +157,7 @@ fn apply_modifications_to_solution_file(
     allow_dead_code: bool,
 ) -> String {
     let mut content = if let ProbMetaData::Function(_) = metadata {
-        format!("struct Solution;\n\n{}", content)
+        format!("{}{}", SOLUTION_STRUCT_PATTERN, content)
     } else {
         content
     };
@@ -255,14 +168,14 @@ fn apply_modifications_to_solution_file(
             .iter()
             .any(|param| param._type.scalar_type == ScalarType::TreeNode);
         if has_tree_node {
-            content = format!("use crate::tree::TreeNode;\n{}", content)
+            content = format!("{}{}", USE_TREENODE_PATTERN, content)
         }
         let has_list_node = function_metadata
             .params
             .iter()
             .any(|param| param._type.scalar_type == ScalarType::ListNode);
         if has_list_node {
-            content = format!("use crate::linked_list::ListNode;\n{}", content)
+            content = format!("{}{}", USE_LISTNODE_PATTERN, content)
         }
     }
 

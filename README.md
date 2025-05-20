@@ -1,10 +1,10 @@
 ## Todo
 
-- [ ] Add command that reads a solution file and puts the relevant content to the clipboard so that the user can directly paste it to leetcode
-  - [ ] We should remove every attribute `#[cfg(test)]`
-  - [ ] If there is a line `struct Solution;` it means it is a function problem and we should remove it
-  - [ ] Same thing for the crate's `TreeNode` and `ListNode` declarations
-  - [ ] If there is a test module (`mod tests`), we should remove it entirely (be aware of `{` within comments, and comments can be `//`, `///` or `/**`)
+- [x] Add command that reads a solution file and puts the relevant content to the clipboard so that the user can directly paste it to leetcode
+  - [x] We should remove every attribute `#[cfg(test)]`
+  - [x] If there is a line `struct Solution;` it means it is a function problem and we should remove it
+  - [x] Same thing for the crate's `TreeNode` and `ListNode` declarations
+  - [x] If there is a test module (`mod tests`), we should remove it entirely (be aware of `{` within comments, and comments can be `//`, `///` or `/**`)
 - [ ] ~~When pasting a default code from leetcode, we may should clean up the comments as they can be meant to define something in rust (see pb 1865)~~
   > There should be a test module ending the file anyways, so there should not be a problem with comments not defining anything
 - [ ] Random functions should maybe not have test modules (see pb 470)

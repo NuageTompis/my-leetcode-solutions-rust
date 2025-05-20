@@ -6,7 +6,7 @@ use std::{
 
 use colored::Colorize;
 
-use crate::create::UNEXPECTED_ERR_HEADER;
+use crate::create::{NO_PREMIUM_ERR, UNEXPECTED_ERR_HEADER};
 
 const ENV_PATH: &str = ".env";
 const SLUGS_PATH: &str = "resources/slugs_and_ids.txt";
@@ -119,6 +119,65 @@ pub fn try_read_test_function_mold() -> Result<String, io::Error> {
 }
 pub fn try_read_test_module_mold() -> Result<String, io::Error> {
     fs::read_to_string(TEST_FMODULE_MOLD_PATH)
+}
+
+/// Tries finding the slug of a problem using the local file `slugs_and_ids.txt`
+///
+/// It will return an error if we sould abort (eg the problem is premium-only but the user is not premium), or an Option<String> if we should continue
+///
+/// ### Arguments
+///
+/// * `problem_id` - The (front-end) id of the problem
+/// * `premium` - The boolean describing if the user declared himself as premium or not
+pub fn try_read_slug_locally(problem_id: u16, premium: bool) -> Result<Option<String>, ()> {
+    let slug_read_res: LocalReadResult<(String, String)> =
+        try_read_variable(&problem_id.to_string(), ',');
+    let slug = match slug_read_res {
+        LocalReadResult::Found((slug, prem)) => {
+            // prem should be either 0 or 1
+            let prem = match prem.parse::<u8>() {
+                Ok(val) => match val {
+                    0 => Some(false),
+                    1 => Some(true),
+                    _ => None,
+                },
+                Err(_) => None,
+            };
+            let prem = match prem {
+                Some(prem) => prem,
+                None => {
+                    println!(
+                        "{} parsing premium value locally for problem {}",
+                        UNEXPECTED_ERR_HEADER.red().bold(),
+                        problem_id
+                    );
+                    return Err(());
+                }
+            };
+            if prem && !premium {
+                println!("{}", NO_PREMIUM_ERR);
+                return Err(());
+            }
+            Some(slug)
+        }
+        LocalReadResult::FileMissing => {
+            println!("File `slugs_and_ids` missing, creating it...");
+            None
+        }
+        LocalReadResult::LineMissing => None,
+        LocalReadResult::LineCorrupted => {
+            println!("We did find problem {} locally but the line seems to be corrupted. Starting api call...", problem_id);
+            None
+        }
+        LocalReadResult::UnexpectedError => {
+            println!(
+                "{} reading slug locally.",
+                UNEXPECTED_ERR_HEADER.red().bold()
+            );
+            None
+        }
+    };
+    Ok(slug)
 }
 
 pub fn try_write_slugs_and_ids(content: String) -> io::Result<()> {

@@ -11,7 +11,10 @@ pub struct LCArgs {
 pub enum MainCommand {
     /// Creates a solution file for the given problem, with default code and test cases
     #[clap(alias = "c")]
-    Create(CreateCommand),
+    Create(ProblemIdCommand),
+
+    /// Reads a solution file and puts the relevant content to your clipboard
+    Clip(ProblemIdCommand),
 
     /// Configure your information
     Config(ConfigCommand),
@@ -23,7 +26,7 @@ pub enum MainCommand {
 
 
 #[derive(Args, Debug)]
-pub struct CreateCommand {
+pub struct ProblemIdCommand {
     /// The problem's id
     pub problem_id: u16,
 }
