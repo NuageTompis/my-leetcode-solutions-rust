@@ -119,16 +119,33 @@ fn create_test_function(
         .map(|x| x.name.clone())
         .collect::<Vec<String>>()
         .join(", ");
+
+    let is_return_void = if let Some(return_type) = &metadata._return {
+        return_type._type.scalar_type == ScalarType::Void
+    } else {
+        false
+    };
+    let code_leading_function_call = if is_return_void { "" } else { "let res = " };
     content.push_str(&format!(
-        "        let res = Solution::{}({});\n",
-        metadata.name, arguments
+        "        {}Solution::{}({});\n",
+        code_leading_function_call, metadata.name, arguments
     ));
+
     if let Some(return_type) = &metadata._return {
+        let code_leading_expected_expression = if is_return_void {
+            ""
+        } else {
+            &format!(": {}", return_type._type)
+        };
         content.push_str(&format!(
-            "        let expected: {} = todo!(); // Fill in this value\n",
-            return_type._type
+            "        let expected{} = todo!(); // Fill in this value\n",
+            code_leading_expected_expression
         ));
-        content.push_str("        assert_eq!(res, expected);\n");
+        let variable_to_assert = if is_return_void { "todo!()" } else { "res" };
+        content.push_str(&format!(
+            "        assert_eq!({}, expected);\n",
+            variable_to_assert,
+        ));
     }
 
     Ok(res.replace(TEST_FUNCTION_CONTENT_PATTERN, &content))

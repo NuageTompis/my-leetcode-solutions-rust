@@ -78,7 +78,7 @@ impl fmt::Display for ScalarType {
             ScalarType::ListNode => write!(f, "Option<Box<ListNode>>"),
             ScalarType::Double => write!(f, "f64"),
             ScalarType::TreeNode => write!(f, "Option<Rc<RefCell<TreeNode>>>"),
-            ScalarType::Void => todo!(),
+            ScalarType::Void => write!(f, "()"),
         }
     }
 }
