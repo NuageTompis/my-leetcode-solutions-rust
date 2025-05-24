@@ -15,16 +15,16 @@ pub enum ProbMetaData {
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct ClassMetaData {
     #[serde(rename = "classname")]
-    class_name: String,
-    constructor: ConstructorJson,
-    methods: Vec<FunctionMetaData>,
+    pub class_name: String,
+    pub constructor: ConstructorJson,
+    pub methods: Vec<FunctionMetaData>,
     #[serde(rename = "return")]
-    _return: ReturnJson,
+    pub _return: ReturnJson,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
-struct ConstructorJson {
-    params: Vec<ParamJson>,
+pub struct ConstructorJson {
+    pub params: Vec<ParamJson>,
 }
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
@@ -55,6 +55,68 @@ pub struct ReturnJson {
 pub struct DataType {
     pub scalar_type: ScalarType,
     pub vec_depth: u8,
+}
+
+impl HasSpecialDataType for ParamJson {
+    fn has_tree_node(&self) -> bool {
+        self._type.scalar_type == ScalarType::TreeNode
+    }
+
+    fn has_list_node(&self) -> bool {
+        self._type.scalar_type == ScalarType::ListNode
+    }
+}
+
+impl HasSpecialDataType for ProbMetaData {
+    fn has_tree_node(&self) -> bool {
+        match self {
+            ProbMetaData::Class(metadata) => metadata
+                .constructor
+                .params
+                .iter()
+                .any(|param| param.has_tree_node()),
+            ProbMetaData::Function(metadata) => {
+                metadata.params.iter().any(|param| param.has_tree_node())
+            }
+        }
+    }
+
+    fn has_list_node(&self) -> bool {
+        match self {
+            ProbMetaData::Class(metadata) => metadata
+                .constructor
+                .params
+                .iter()
+                .any(|param| param.has_list_node()),
+
+            ProbMetaData::Function(metadata) => {
+                metadata.params.iter().any(|param| param.has_list_node())
+            }
+        }
+    }
+}
+
+pub trait HasSpecialDataType {
+    fn has_tree_node(&self) -> bool;
+    fn has_list_node(&self) -> bool;
+}
+
+impl ParamJson {
+    #[cfg(test)]
+    pub fn simple(name: &str) -> Self {
+        Self {
+            name: name.to_owned(),
+            _type: DataType::from(ScalarType::Integer),
+        }
+    }
+
+    #[cfg(test)]
+    pub fn from_scalar(name: &str, scalar_type: ScalarType) -> Self {
+        Self {
+            name: name.to_owned(),
+            _type: DataType::from(scalar_type),
+        }
+    }
 }
 
 impl fmt::Display for DataType {
@@ -156,6 +218,14 @@ impl DataType {
     /// ```
     pub fn try_write_variable(&self, value: &str) -> Result<String, String> {
         try_write_variable_recur(self.scalar_type, value, self.vec_depth)
+    }
+
+    #[cfg(test)]
+    pub fn from(scalar_type: ScalarType) -> Self {
+        Self {
+            scalar_type: scalar_type,
+            vec_depth: 0,
+        }
     }
 }
 
@@ -275,42 +345,6 @@ impl ScalarType {
     }
 }
 
-/// Tries grouping the example testcases fetched from leetcode into a nice list
-///
-/// ### Arguments
-///
-/// * `example_testcases` - The example testcases as string separated by `\n`
-/// * `params_amt` - The amount of parameters the function expects
-///
-/// ### Example
-///
-/// ```
-/// let example_testcases = "[4,5]\n0\n[6]\n8";
-/// let res = try_group_example_testcases(example_testcases, 2);
-/// let expected = vec![vec!["[4,5]".into(),"0".into()],vec!["[6]".into(),"8".into()]];
-/// assert_eq!(res, Ok(expected));
-/// ```
-pub fn try_group_example_testcases(
-    example_testcases: &str,
-    params_amt: usize,
-) -> Result<Vec<Vec<String>>, String> {
-    let lines: Vec<&str> = example_testcases.lines().collect();
-    let example_elements_amt = lines.len();
-    if example_elements_amt % params_amt != 0 {
-        return Err("Error grouping the example testcases into a list of groups of the same size as the parameters amount".into());
-    }
-
-    let mut res: Vec<Vec<String>> = Vec::new();
-    let groups_amt = example_elements_amt / params_amt;
-    for group in 0..groups_amt {
-        let ndx = group * params_amt;
-        let slice = &lines[ndx..ndx + params_amt];
-        res.push(slice.iter().map(|el| el.to_string()).collect());
-    }
-
-    Ok(res)
-}
-
 pub trait SnakeCase {
     fn snake_case(&self) -> String;
 }
@@ -334,6 +368,95 @@ impl SnakeCase for str {
             }
         }
         res
+    }
+}
+
+/// ## Description
+///
+/// Takes an array of values, usually arrays, described in a string, and returns a `Vec` containing all outer strings
+///
+/// ## Example
+/// ```
+/// let array = "[[1,2],[3]]";
+/// let res = try_split_array(array);
+/// let expected = vec!["[1,2]".into(), "[3]".into()];
+/// assert_eq!(res, Ok(expected));
+/// ```
+pub fn try_split_array(array: &str) -> Result<Vec<String>, String> {
+    let mut chars = array.chars();
+    let bracket = chars.next().ok_or("Empty".to_owned())?;
+    if bracket != '[' {
+        return Err("No leading bracket".into());
+    }
+    let mut bracket_depth = 0;
+    let mut res: Vec<String> = Vec::new();
+    let mut curr = String::new();
+    for c in chars {
+        match c {
+            ',' if bracket_depth == 0 => {
+                res.push(curr);
+                curr = String::new();
+            }
+            '[' => {
+                bracket_depth += 1;
+                curr.push(c);
+            }
+            ']' => {
+                if bracket_depth == 0 {
+                    res.push(curr);
+                    curr = String::new();
+                }
+                bracket_depth -= 1;
+                curr.push(c);
+            }
+            _ => {
+                curr.push(c);
+            }
+        }
+    }
+    Ok(res)
+}
+
+/// ## Description
+///
+/// Given an array of methods as string, and an array of corresponding arguments as string, parses the input into pairs of method name with their arguments
+///
+/// Example
+///
+/// ```
+/// let methods_name = r#"["Class","put"]"#;
+/// let methods_arguments = "[[2],[1,1]]";
+/// let res = try_parse_class_problem_testcase(methods_name, methods_arguments);
+/// let expected = vec![
+///     ("Class", "[2]"),
+///     ("put", "[1,1]"),
+/// ];
+/// assert_eq!(res, Ok(expected));
+/// ```
+pub fn try_parse_class_problem_testcase(
+    methods_name: &str,
+    methods_arguments: &str,
+) -> Result<Vec<(String, String)>, String> {
+    let names: Vec<String> = try_split_array(methods_name)?
+        .iter()
+        .map(|name| {
+            if name.len() < 2 {
+                Err("No quotes".into())
+            } else {
+                Ok(name[1..name.len() - 1].to_owned())
+            }
+        })
+        .collect::<Result<_, String>>()?;
+    let args: Vec<String> = try_split_array(methods_arguments)?;
+
+    if names.len() != args.len() {
+        Err("Methods and arguments amount mismatch".into())
+    } else {
+        Ok(names
+            .iter()
+            .zip(args)
+            .map(|(a, b)| (a.to_string(), b))
+            .collect())
     }
 }
 
@@ -401,10 +524,7 @@ mod tests {
             constructor: ConstructorJson { params: Vec::new() },
             methods: Vec::new(),
             _return: ReturnJson {
-                _type: DataType {
-                    scalar_type: ScalarType::Boolean,
-                    vec_depth: 0,
-                },
+                _type: DataType::from(ScalarType::Boolean),
             },
         });
         assert_eq!(res.unwrap(), expected);
@@ -437,10 +557,7 @@ mod tests {
     #[test]
     fn test_parse_data_type() {
         let res = "string".parse::<DataType>();
-        let expected = DataType {
-            scalar_type: ScalarType::String,
-            vec_depth: 0,
-        };
+        let expected = DataType::from(ScalarType::String);
         assert_eq!(res, Ok(expected));
         let res = "list<list<long>>".parse::<DataType>();
         let expected = DataType {
@@ -460,10 +577,7 @@ mod tests {
 
     #[test]
     fn test_display_data_type() {
-        let string_type = DataType {
-            scalar_type: ScalarType::String,
-            vec_depth: 0,
-        };
+        let string_type = DataType::from(ScalarType::String);
         let res = format!("{}", string_type);
         assert_eq!(res, String::from("String"));
 
@@ -473,26 +587,6 @@ mod tests {
         };
         let res = format!("{}", char_type);
         assert_eq!(res, String::from("Vec<Vec<char>>"));
-    }
-
-    #[test]
-    fn test_group_example_testcases() {
-        let example_testcases = r"[4,5,6,7,0,1,2]
-0
-[4,5,6,7,0,1,2]
-3
-[1]
-0";
-        let res = try_group_example_testcases(example_testcases, 2);
-        let mut expected = Vec::new();
-        expected.push(vec!["[4,5,6,7,0,1,2]".into(), "0".into()]);
-        expected.push(vec!["[4,5,6,7,0,1,2]".into(), "3".into()]);
-        expected.push(vec!["[1]".into(), "0".into()]);
-        assert_eq!(res, Ok(expected));
-
-        let example_testcases = r"single line";
-        let res = try_group_example_testcases(example_testcases, 2);
-        assert!(res.is_err());
     }
 
     #[test]
@@ -519,6 +613,28 @@ mod tests {
         };
         let res = data_type.try_write_variable(r#"[["5","3"],["6","."]]"#);
         let expected = "vec![vec!['5','3'],vec!['6','.']]".into();
+        assert_eq!(res, Ok(expected));
+    }
+
+    #[test]
+    fn test_try_parse_class_problem_testcase() {
+        let methods_name = r#"["LRUCache","put","put","get"]"#;
+        let methods_arguments = "[[2],[1,1],[2,2],[1]]";
+        let res = try_parse_class_problem_testcase(methods_name, methods_arguments);
+        let expected = vec![
+            ("LRUCache".into(), "[2]".into()),
+            ("put".into(), "[1,1]".into()),
+            ("put".into(), "[2,2]".into()),
+            ("get".into(), "[1]".into()),
+        ];
+        assert_eq!(res, Ok(expected));
+    }
+
+    #[test]
+    fn test_try_split_array() {
+        let array = "[[1,2],[3]]";
+        let res = try_split_array(array);
+        let expected = vec!["[1,2]".into(), "[3]".into()];
         assert_eq!(res, Ok(expected));
     }
 }

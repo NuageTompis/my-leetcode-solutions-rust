@@ -54,6 +54,7 @@ pub async fn handle_clip_command(clip: ProblemIdCommand) -> Result<(), ()> {
     }
 
     content = remove_test_module(content);
+    content = content.trim().to_owned();
 
     println!("Trying to set solution to your clipboard...");
     let ctx_res = ClipboardProvider::new();
@@ -75,6 +76,8 @@ pub async fn handle_clip_command(clip: ProblemIdCommand) -> Result<(), ()> {
         println!("Error setting solution to clipboard: {}", e);
         return Err(());
     }
+
+    let _ = ctx.get_contents(); // not reading clipboard content after setting it doesn't seem to work in ubuntu, so this should be kept as-is
 
     println!(
         "{} added solution to clipboard!",

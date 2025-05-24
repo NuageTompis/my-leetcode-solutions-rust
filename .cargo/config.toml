@@ -1,3 +1,4 @@
 [alias]
 create = "run -- create"
 conf = "run -- config"
+clip = "run -- clip"

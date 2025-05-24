@@ -1,8 +1,8 @@
 use colored::Colorize;
 
 use crate::fetch::{ProblemContent, ProblemJSON};
-use crate::molds_helper::try_create_test_module;
 use crate::parse_api::{ProbMetaData, ScalarType};
+use crate::test_module::create_test_module::try_create_test_module;
 use crate::{fetch, read_write};
 
 use crate::args::ProblemIdCommand;
