@@ -25,13 +25,17 @@ Once you're ready to submit it, you can run a command to place your code to your
 
 - Find a problem you'd like to solve (for example problem number `1`, [Two Sum](https://leetcode.com/problems/two-sum/description/))
 - Run `cargo create 1`
-- Head to the generated file (click on the command output)
+- Head to the generated file (click on the command output if your terminal supports this feature)
 - The command generated a test module alongside the default code, with one test function for every example testcase provided by leetcode. However, the api doesn't provide the expected output for each input, so you'll have to fill in this value
 - Write your implementation of the solution
 - Test your solution by running `cargo test 1` (or `cargo test s1_` once you start having many solution files)
 - Run `cargo clip 1` to copy your solution
 - Head back to leetcode, and replace the whole default code with `ctrl+v`
 - Submit
+
+#### Demo
+
+![demo](.docs/leetcrust-demo.gif)
 
 ## Advancement
 
@@ -49,7 +53,7 @@ Once you're ready to submit it, you can run a command to place your code to your
 | Random functions should maybe not have test modules (see pb 470)                          | `TODO`             |
 | Either implement or remove the `fetch` command                                            | `TODO`             |
 | Write a basic documentation for the repo                                                  | :white_check_mark: |
-| Add a gif to the readme with the workflow detailed in [Usage](#usage)                     | `TODO`             |
+| Add a gif to the readme with the workflow detailed in [Usage](#usage)                     | :white_check_mark: |
 
 ## Contributing
 
