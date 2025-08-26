@@ -143,10 +143,11 @@ mod tests {
 [1]
 0";
         let res = try_group_example_testcases(example_testcases, 2);
-        let mut expected = Vec::new();
-        expected.push(vec!["[4,5,6,7,0,1,2]".into(), "0".into()]);
-        expected.push(vec!["[4,5,6,7,0,1,2]".into(), "3".into()]);
-        expected.push(vec!["[1]".into(), "0".into()]);
+        let expected = vec![
+            vec!["[4,5,6,7,0,1,2]".into(), "0".into()],
+            vec!["[4,5,6,7,0,1,2]".into(), "3".into()],
+            vec!["[1]".into(), "0".into()],
+        ];
         assert_eq!(res, Ok(expected));
 
         let example_testcases = r"single line";

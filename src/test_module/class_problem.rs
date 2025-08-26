@@ -177,15 +177,16 @@ mod tests {
 ["FindElements","find","find","find"]
 [[[-1,-1,-1,-1,-1]],[1],[3],[5]]"#;
         let res = try_group_example_testcases(example_testcases);
-        let mut expected: Vec<(String, String)> = Vec::new();
-        expected.push((
-            r#"["FindElements","find","find"]"#.into(),
-            r#"[[[-1,null,-1]],[1],[2]]"#.into(),
-        ));
-        expected.push((
-            r#"["FindElements","find","find","find"]"#.into(),
-            r#"[[[-1,-1,-1,-1,-1]],[1],[3],[5]]"#.into(),
-        ));
+        let expected = vec![
+            (
+                r#"["FindElements","find","find"]"#.into(),
+                r#"[[[-1,null,-1]],[1],[2]]"#.into(),
+            ),
+            (
+                r#"["FindElements","find","find","find"]"#.into(),
+                r#"[[[-1,-1,-1,-1,-1]],[1],[3],[5]]"#.into(),
+            ),
+        ];
         assert_eq!(res, Ok(expected));
         let example_testcases = "single_line";
         let res = try_group_example_testcases(example_testcases);

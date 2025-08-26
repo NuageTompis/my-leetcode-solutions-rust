@@ -223,7 +223,7 @@ impl DataType {
     #[cfg(test)]
     pub fn from(scalar_type: ScalarType) -> Self {
         Self {
-            scalar_type: scalar_type,
+            scalar_type,
             vec_depth: 0,
         }
     }

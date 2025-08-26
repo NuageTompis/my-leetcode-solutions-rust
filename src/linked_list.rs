@@ -23,7 +23,6 @@ pub fn to_list(vec: Vec<i32>) -> Option<Box<ListNode>> {
     current
 }
 
-
 /// ### Description
 ///
 /// Creates a `[LinkedList]` from an array provided by leetcode.

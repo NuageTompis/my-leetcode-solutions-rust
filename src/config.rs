@@ -14,7 +14,8 @@ pub fn handle_config_command(config: ConfigCommand) {
             }
         }
         ConfigSubcommand::AllowDeadCode(allow_dead_code_command) => {
-            let res = assert_valid_u8_bool(allow_dead_code_command.allow_dead_code, "allow_dead_code");
+            let res =
+                assert_valid_u8_bool(allow_dead_code_command.allow_dead_code, "allow_dead_code");
             if let Ok(res) = res {
                 res
             } else {

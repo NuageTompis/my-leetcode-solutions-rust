@@ -24,7 +24,6 @@ pub enum MainCommand {
     Fetch(FetchCommand),
 }
 
-
 #[derive(Args, Debug)]
 pub struct ProblemIdCommand {
     /// The problem's id
@@ -49,7 +48,7 @@ pub enum FetchSubcommand {
     Slugs,
 
     /// Not implemented yet
-    Unimplemented
+    Unimplemented,
 }
 
 #[derive(Debug, Subcommand)]
@@ -64,9 +63,9 @@ pub enum ConfigSubcommand {
     /// This will be used for better error-handling
     #[clap(verbatim_doc_comment)]
     Premium(PremiumCommand),
-    
-    // Use the #[allow(dead_code)] attribute instead of the #[cfg(test)] one to escape rust's warnings
-    AllowDeadCode(AllowDeadCodeCommand)
+
+    /// Use the #[allow(dead_code)] attribute instead of the #[cfg(test)] one to escape rust's warnings
+    AllowDeadCode(AllowDeadCodeCommand),
 }
 
 #[derive(Args, Debug)]
