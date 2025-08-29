@@ -352,14 +352,19 @@ pub trait SnakeCase {
 impl SnakeCase for str {
     fn snake_case(&self) -> String {
         let mut res = String::new();
+        let mut prev_is_cap = false;
         for c in self.chars() {
             match c {
                 'A'..='Z' => {
-                    res.push('_');
+                    if !prev_is_cap {
+                        res.push('_');
+                    }
                     res.push_str(&c.to_lowercase().to_string());
+                    prev_is_cap = true;
                 }
                 'a'..='z' => {
                     res.push(c);
+                    prev_is_cap = false;
                 }
                 _ => panic!(
                     "Incorrect character '{}' found, expecting a pascal case string",
@@ -636,5 +641,17 @@ mod tests {
         let res = try_split_array(array);
         let expected = vec!["[1,2]".into(), "[3]".into()];
         assert_eq!(res, Ok(expected));
+    }
+
+    #[test]
+    fn test_snake_case() {
+        let s = "twoSum";
+        let res = s.snake_case();
+        let expected = String::from("two_sum");
+        assert_eq!(res, expected);
+        let s = "lengthOfLIS"; // #1
+        let res = s.snake_case();
+        let expected = String::from("length_of_lis");
+        assert_eq!(res, expected);
     }
 }
