@@ -38,6 +38,7 @@ pub struct FunctionMetaData {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct ParamJson {
+    #[serde(deserialize_with = "deserialize_pascal_to_snake_case")]
     pub name: String,
     #[serde(rename = "type")]
     #[serde(deserialize_with = "deserialize_data_type")]
@@ -359,7 +360,7 @@ impl SnakeCase for str {
                     if !prev_is_cap {
                         res.push('_');
                     }
-                    res.push_str(&c.to_lowercase().to_string());
+                    res.push(c.to_ascii_lowercase());
                     prev_is_cap = true;
                 }
                 'a'..='z' => {
@@ -444,11 +445,18 @@ pub fn try_parse_class_problem_testcase(
 ) -> Result<Vec<(String, String)>, String> {
     let names: Vec<String> = try_split_array(methods_name)?
         .iter()
-        .map(|name| {
+        .enumerate()
+        .map(|(i, name)| {
             if name.len() < 2 {
                 Err("No quotes".into())
             } else {
-                Ok(name[1..name.len() - 1].to_owned())
+                let stripped_name = &name[1..name.len() - 1];
+                // convert the function names to snake case, but not the constructor
+                Ok(if i == 0 {
+                    stripped_name.to_owned()
+                } else {
+                    stripped_name.snake_case()
+                })
             }
         })
         .collect::<Result<_, String>>()?;
@@ -653,5 +661,22 @@ mod tests {
         let res = s.snake_case();
         let expected = String::from("length_of_lis");
         assert_eq!(res, expected);
+    }
+
+    #[test]
+    fn test_try_parse_class_problem_testcase_snake_case() {
+        let methods_name = r#"["FoodRatings","highestRated","highestRated","changeRating","highestRated","changeRating","highestRated"]"#;
+        let methods_arguments = r#"[[["kimchi","miso","sushi","moussaka","ramen","bulgogi"],["korean","japanese","japanese","greek","japanese","korean"],[9,12,8,15,14,7]],["korean"],["japanese"],["sushi",16],["japanese"],["ramen",16],["japanese"]]"#;
+        let res = try_parse_class_problem_testcase(methods_name, methods_arguments);
+        let expected = vec![
+            ("FoodRatings".into(), r#"[["kimchi","miso","sushi","moussaka","ramen","bulgogi"],["korean","japanese","japanese","greek","japanese","korean"],[9,12,8,15,14,7]]"#.into(),),
+            ("highest_rated".into(), r#"["korean"]"#.into()),
+            ("highest_rated".into(), r#"["japanese"]"#.into()),
+            ("change_rating".into(), r#"["sushi",16]"#.into()),
+            ("highest_rated".into(), r#"["japanese"]"#.into()),
+            ("change_rating".into(), r#"["ramen",16]"#.into()),
+            ("highest_rated".into(), r#"["japanese"]"#.into()),
+        ];
+        assert_eq!(res, Ok(expected));
     }
 }

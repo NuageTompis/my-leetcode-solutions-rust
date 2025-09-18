@@ -15,7 +15,7 @@ pub fn try_create_test_functions(
     // group example testcases
     let grouped_testcases = try_group_example_testcases(example_testcases)?;
 
-    // add eact test function to the resulting String
+    // add each test function to the resulting String
     let mut functions_str = String::new();
     for (id, group) in grouped_testcases.iter().enumerate() {
         let test_function = try_create_test_function(mold, id + 1, group, metadata)?;
