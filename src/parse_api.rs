@@ -363,7 +363,7 @@ impl SnakeCase for str {
                     res.push(c.to_ascii_lowercase());
                     prev_is_cap = true;
                 }
-                'a'..='z' => {
+                'a'..='z' | '0'..='9' => {
                     res.push(c);
                     prev_is_cap = false;
                 }
@@ -409,7 +409,9 @@ pub fn try_split_array(array: &str) -> Result<Vec<String>, String> {
             }
             ']' => {
                 if bracket_depth == 0 {
-                    res.push(curr);
+                    if !curr.is_empty() {
+                        res.push(curr);
+                    }
                     curr = String::new();
                 }
                 bracket_depth -= 1;
@@ -648,6 +650,14 @@ mod tests {
         let array = "[[1,2],[3]]";
         let res = try_split_array(array);
         let expected = vec!["[1,2]".into(), "[3]".into()];
+        assert_eq!(res, Ok(expected));
+        let array = "[]"; // eg problem 3508
+        let res = try_split_array(array);
+        let expected = Vec::new();
+        assert_eq!(res, Ok(expected));
+        let array = "[[1],[]]";
+        let res = try_split_array(array);
+        let expected = vec!["[1]".into(), "[]".into()];
         assert_eq!(res, Ok(expected));
     }
 
