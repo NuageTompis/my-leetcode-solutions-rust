@@ -52,3 +52,27 @@ mod s1368_minimum_cost_to_make_at_least_one_valid_path_in_a_grid;
 mod s1376_time_needed_to_inform_all_employees;
 #[allow(dead_code)]
 mod s1400_construct_k_palindrome_strings;
+#[allow(dead_code)]
+mod s1405_longest_happy_string;
+#[allow(dead_code)]
+mod s1408_string_matching_in_an_array;
+#[allow(dead_code)]
+mod s1422_maximum_score_after_splitting_a_string;
+#[allow(dead_code)]
+mod s1466_reorder_routes_to_make_all_paths_lead_to_the_city_zero;
+#[allow(dead_code)]
+mod s155_min_stack;
+#[allow(dead_code)]
+mod s15_3sum;
+#[allow(dead_code)]
+mod s169_majority_element;
+#[allow(dead_code)]
+mod s1765_map_of_highest_peak;
+#[allow(dead_code)]
+mod s1769_minimum_number_of_operations_to_move_all_balls_to_each_box;
+#[allow(dead_code)]
+mod s1926_nearest_exit_from_entrance_in_maze;
+#[allow(dead_code)]
+mod s1930_unique_length_3_palindromic_subsequences;
+#[allow(dead_code)]
+mod s1_two_sum;
