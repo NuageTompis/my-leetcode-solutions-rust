@@ -112,3 +112,23 @@ mod s2490_circular_sentence;
 mod s2530_maximal_score_after_applying_k_operations;
 #[allow(dead_code)]
 mod s2559_count_vowel_strings_in_ranges;
+#[allow(dead_code)]
+mod s983_minimum_cost_for_tickets;
+#[allow(dead_code)]
+mod s962_maximum_width_ramp;
+#[allow(dead_code)]
+mod s916_word_subsets;
+#[allow(dead_code)]
+mod s841_keys_and_rooms;
+#[allow(dead_code)]
+mod s80_remove_duplicates_from_sorted_array_ii;
+#[allow(dead_code)]
+mod s802_find_eventual_safe_states;
+#[allow(dead_code)]
+mod s797_all_paths_from_source_to_target;
+#[allow(dead_code)]
+mod s76_minimum_window_substring;
+#[allow(dead_code)]
+mod s71_simplify_path;
+#[allow(dead_code)]
+mod s57_insert_interval;
