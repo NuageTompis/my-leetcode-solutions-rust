@@ -88,3 +88,27 @@ mod s3446_sort_matrix_by_diagonals;
 mod s36_valid_sudoku;
 #[allow(dead_code)]
 mod s498_diagonal_traverse;
+#[allow(dead_code)]
+mod s2017_grid_game;
+#[allow(dead_code)]
+mod s205_isomorphic_strings;
+#[allow(dead_code)]
+mod s20_valid_parentheses;
+#[allow(dead_code)]
+mod s2116_check_if_a_parentheses_string_can_be_valid;
+#[allow(dead_code)]
+mod s2185_counting_words_with_a_given_prefix;
+#[allow(dead_code)]
+mod s2270_number_of_ways_to_split_array;
+#[allow(dead_code)]
+mod s2406_divide_intervals_into_minimum_number_of_groups;
+#[allow(dead_code)]
+mod s2425_bitwise_xor_of_all_pairings;
+#[allow(dead_code)]
+mod s2429_minimize_xor;
+#[allow(dead_code)]
+mod s2490_circular_sentence;
+#[allow(dead_code)]
+mod s2530_maximal_score_after_applying_k_operations;
+#[allow(dead_code)]
+mod s2559_count_vowel_strings_in_ranges;
