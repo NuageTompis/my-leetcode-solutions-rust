@@ -76,3 +76,15 @@ mod s1926_nearest_exit_from_entrance_in_maze;
 mod s1930_unique_length_3_palindromic_subsequences;
 #[allow(dead_code)]
 mod s1_two_sum;
+#[allow(dead_code)]
+mod s3000_maximum_area_of_longest_diagonal_rectangle;
+#[allow(dead_code)]
+mod s300_longest_increasing_subsequence;
+#[allow(dead_code)]
+mod s3021_alice_and_bob_playing_flower_game;
+#[allow(dead_code)]
+mod s3446_sort_matrix_by_diagonals;
+#[allow(dead_code)]
+mod s36_valid_sudoku;
+#[allow(dead_code)]
+mod s498_diagonal_traverse;
