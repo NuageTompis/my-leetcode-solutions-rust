@@ -7,7 +7,7 @@ impl Solution {
         water_start_time: Vec<i32>,
         water_duration: Vec<i32>,
     ) -> i32 {
-        // find earliest enf for both
+        // find earliest end for both
         let mut end_land = i32::MAX;
         let mut end_water = i32::MAX;
         for (s, d) in land_start_time.iter().zip(land_duration.iter()) {

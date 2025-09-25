@@ -13,7 +13,6 @@ impl Solution {
                 cpt_l += 1;
             }
             let power_of_4_above = Self::four_pow(cpt_l);
-            // println!("l={}, cpt_l={cpt_l}, power={}", pair[0], power_of_4_above);
 
             let mut cpt_r = 0;
             while r > 0 {
@@ -21,26 +20,16 @@ impl Solution {
                 cpt_r += 1;
             }
             let power_of_4_below = Self::four_pow(cpt_r - 1);
-            // println!("r={}, cpt_r={cpt_r}, power={}", pair[1], power_of_4_below);
 
             let query_operetions = if cpt_l == cpt_r {
                 (pair[1] - pair[0] + 1) as i64 * cpt_l as i64
             } else {
-                // println!("adding: {}", (power_of_4_above - pair[0]) as i64 * cpt_l);
                 let mut operations = (power_of_4_above - pair[0] as i64) * cpt_l as i64;
-                // println!(
-                //     "adding: {}",
-                //     (pair[1] - power_of_4_below + 1) as i64 * cpt_r
-                // );
                 operations += (pair[1] as i64 - power_of_4_below + 1) * cpt_r as i64;
                 // for every embeddded interval add the sum
                 for k in cpt_l + 1..cpt_r {
                     operations += (Self::four_pow(k) - Self::four_pow(k - 1)) * k as i64;
                 }
-                // ret += (Self::four_pow(cpt_l) + 3 * (cpt_r - 1) as i64 * Self::four_pow(cpt_r - 1)
-                //     - Self::four_pow(cpt_r - 1))
-                //     / 3
-                //     - Self::four_pow(cpt_l - 1) * cpt_l as i64;
                 operations
             };
             ret += (query_operetions + 1) >> 1;

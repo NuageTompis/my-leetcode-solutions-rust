@@ -59,13 +59,4 @@ mod tests {
         let expected: f64 = 0.7833333333333333; // Fill in this value
         assert_eq!(res, expected);
     }
-
-    // #[test]
-    // fn example_2() {
-    //     let classes: Vec<Vec<i32>> = vec![vec![2, 4], vec![3, 9], vec![4, 5], vec![2, 10]];
-    //     let extra_students: i32 = 4;
-    //     let res = Solution::max_average_ratio(classes, extra_students);
-    //     let expected: f64 = 0.0; // Fill in this value
-    //     assert_eq!(res, expected);
-    // }
 }
