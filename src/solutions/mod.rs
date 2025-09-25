@@ -142,3 +142,19 @@ mod s48_rotate_image;
 mod s42_trapping_rain_water;
 #[allow(dead_code)]
 mod s407_trapping_rain_water_ii;
+#[allow(dead_code)]
+mod s2583_kth_largest_sum_in_a_binary_tree;
+#[allow(dead_code)]
+mod s2657_find_the_prefix_common_array_of_two_arrays;
+#[allow(dead_code)]
+mod s2661_first_completely_painted_row_or_column;
+#[allow(dead_code)]
+mod s2683_neighboring_bitwise_xor;
+#[allow(dead_code)]
+mod s289_game_of_life;
+#[allow(dead_code)]
+mod s2914_minimum_number_of_changes_to_make_binary_string_beautiful;
+#[allow(dead_code)]
+mod s2938_separate_black_and_white_balls;
+#[allow(dead_code)]
+mod s3011_find_if_array_can_be_sorted;
