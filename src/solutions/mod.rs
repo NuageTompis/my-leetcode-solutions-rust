@@ -21,6 +21,8 @@ mod s1304_find_n_unique_integers_sum_up_to_zero;
 #[allow(dead_code)]
 mod s1317_convert_integer_to_the_sum_of_two_no_zero_integers;
 #[allow(dead_code)]
+mod s1323_maximum_69_number;
+#[allow(dead_code)]
 mod s134_gas_station;
 #[allow(dead_code)]
 mod s1368_minimum_cost_to_make_at_least_one_valid_path_in_a_grid;
