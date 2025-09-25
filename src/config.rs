@@ -36,7 +36,7 @@ pub fn handle_config_command(config: ConfigCommand) {
 }
 
 fn assert_valid_u8_bool(val: u8, name: &str) -> Result<(&str, String), ()> {
-    if val > 2 {
+    if val >= 2 {
         println!(
             "The {} value {} is not valid, it should be either 0 or 1",
             name, val

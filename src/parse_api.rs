@@ -354,7 +354,8 @@ impl SnakeCase for str {
     fn snake_case(&self) -> String {
         let mut res = String::new();
         let mut prev_is_cap = false;
-        for c in self.chars() {
+        // the str is trimmed to handle typo in problem 1323
+        for c in self.trim().chars() {
             match c {
                 'A'..='Z' => {
                     if !prev_is_cap {
@@ -670,6 +671,10 @@ mod tests {
         let s = "lengthOfLIS"; // #1
         let res = s.snake_case();
         let expected = String::from("length_of_lis");
+        assert_eq!(res, expected);
+        let s = "maximum69Number "; // problem 1323
+        let res = s.snake_case();
+        let expected = String::from("maximum69_number");
         assert_eq!(res, expected);
     }
 
