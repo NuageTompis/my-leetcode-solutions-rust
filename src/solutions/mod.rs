@@ -132,3 +132,13 @@ mod s76_minimum_window_substring;
 mod s71_simplify_path;
 #[allow(dead_code)]
 mod s57_insert_interval;
+#[allow(dead_code)]
+mod s547_number_of_provinces;
+#[allow(dead_code)]
+mod s49_group_anagrams;
+#[allow(dead_code)]
+mod s48_rotate_image;
+#[allow(dead_code)]
+mod s42_trapping_rain_water;
+#[allow(dead_code)]
+mod s407_trapping_rain_water_ii;
