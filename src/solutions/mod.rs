@@ -5,6 +5,8 @@ mod s1192_critical_connections_in_a_network;
 #[allow(dead_code)]
 mod s11_container_with_most_water;
 #[allow(dead_code)]
+mod s120_triangle;
+#[allow(dead_code)]
 mod s122_best_time_to_buy_and_sell_stock_ii;
 #[allow(dead_code)]
 mod s1233_remove_sub_folders_from_the_filesystem;
@@ -121,6 +123,12 @@ mod s3163_string_compression_iii;
 #[allow(dead_code)]
 mod s3223_minimum_length_of_string_after_operations;
 #[allow(dead_code)]
+mod s3408_design_task_manager;
+#[allow(dead_code)]
+mod s3411_maximum_subarray_with_equal_products;
+#[allow(dead_code)]
+mod s3412_find_mirror_score_of_a_string;
+#[allow(dead_code)]
 mod s3446_sort_matrix_by_diagonals;
 #[allow(dead_code)]
 mod s3484_design_spreadsheet;
@@ -134,6 +142,8 @@ mod s3561_resulting_string_after_adjacent_removals;
 mod s3633_earliest_finish_time_for_land_and_water_rides_i;
 #[allow(dead_code)]
 mod s36_valid_sudoku;
+#[allow(dead_code)]
+mod s383_ransom_note;
 #[allow(dead_code)]
 mod s407_trapping_rain_water_ii;
 #[allow(dead_code)]
@@ -166,11 +176,3 @@ mod s916_word_subsets;
 mod s962_maximum_width_ramp;
 #[allow(dead_code)]
 mod s983_minimum_cost_for_tickets;
-#[allow(dead_code)]
-mod s3408_design_task_manager;
-#[allow(dead_code)]
-mod s3411_maximum_subarray_with_equal_products;
-#[allow(dead_code)]
-mod s3412_find_mirror_score_of_a_string;
-#[allow(dead_code)]
-mod s383_ransom_note;
