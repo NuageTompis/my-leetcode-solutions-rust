@@ -178,3 +178,5 @@ mod s916_word_subsets;
 mod s962_maximum_width_ramp;
 #[allow(dead_code)]
 mod s983_minimum_cost_for_tickets;
+#[allow(dead_code)]
+mod s611_valid_triangle_number;
