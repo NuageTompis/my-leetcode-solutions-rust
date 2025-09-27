@@ -147,7 +147,7 @@ pub fn try_group_example_testcases(
     example_testcases: &str,
 ) -> Result<Vec<(String, String)>, String> {
     let lines: Vec<&str> = example_testcases.lines().collect();
-    if lines.len() % 2 != 0 {
+    if !lines.len().is_multiple_of(2) {
         return Err("Error grouping the example testcases into a list as we expected pairs of lists (function calls, function arguments)".into());
     }
 

@@ -113,7 +113,7 @@ fn try_group_example_testcases(
 ) -> Result<Vec<Vec<String>>, String> {
     let lines: Vec<&str> = example_testcases.lines().collect();
     let example_elements_amt = lines.len();
-    if example_elements_amt % params_amt != 0 {
+    if !example_elements_amt.is_multiple_of(params_amt) {
         return Err("Error grouping the example testcases into a list of groups of the same size as the parameters amount".into());
     }
 
