@@ -180,3 +180,5 @@ mod s962_maximum_width_ramp;
 mod s983_minimum_cost_for_tickets;
 #[allow(dead_code)]
 mod s611_valid_triangle_number;
+#[allow(dead_code)]
+mod s812_largest_triangle_area;
