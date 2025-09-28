@@ -184,3 +184,7 @@ mod s962_maximum_width_ramp;
 mod s983_minimum_cost_for_tickets;
 #[allow(dead_code)]
 mod s976_largest_perimeter_triangle;
+#[allow(dead_code)]
+mod s3697_compute_decimal_representation;
+#[allow(dead_code)]
+mod s3698_split_array_with_minimum_difference;
