@@ -161,6 +161,8 @@ mod s547_number_of_provinces;
 #[allow(dead_code)]
 mod s57_insert_interval;
 #[allow(dead_code)]
+mod s611_valid_triangle_number;
+#[allow(dead_code)]
 mod s71_simplify_path;
 #[allow(dead_code)]
 mod s76_minimum_window_substring;
@@ -171,6 +173,8 @@ mod s802_find_eventual_safe_states;
 #[allow(dead_code)]
 mod s80_remove_duplicates_from_sorted_array_ii;
 #[allow(dead_code)]
+mod s812_largest_triangle_area;
+#[allow(dead_code)]
 mod s841_keys_and_rooms;
 #[allow(dead_code)]
 mod s916_word_subsets;
@@ -179,6 +183,4 @@ mod s962_maximum_width_ramp;
 #[allow(dead_code)]
 mod s983_minimum_cost_for_tickets;
 #[allow(dead_code)]
-mod s611_valid_triangle_number;
-#[allow(dead_code)]
-mod s812_largest_triangle_area;
+mod s976_largest_perimeter_triangle;
