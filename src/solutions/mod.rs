@@ -188,3 +188,5 @@ mod s976_largest_perimeter_triangle;
 mod s3697_compute_decimal_representation;
 #[allow(dead_code)]
 mod s3698_split_array_with_minimum_difference;
+#[allow(dead_code)]
+mod s1039_minimum_score_triangulation_of_polygon;
