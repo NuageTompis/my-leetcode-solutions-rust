@@ -192,3 +192,5 @@ mod s962_maximum_width_ramp;
 mod s976_largest_perimeter_triangle;
 #[allow(dead_code)]
 mod s983_minimum_cost_for_tickets;
+#[allow(dead_code)]
+mod s3035_maximum_palindromes_after_operations;
