@@ -69,6 +69,9 @@ pub async fn handle_create_command(create: ProblemIdCommand) -> Result<(), ()> {
         allow_dead_code,
     );
 
+    let url = format!("https://leetcode.com/problems/{}", slug);
+    println!("URL: {}", url);
+
     Ok(())
 }
 
@@ -130,11 +133,7 @@ fn try_creating_solution_file(
     let write_file_res = read_write::try_write_solution_template(&file_path, &content); // we check that it doesn't already exist
     match write_file_res {
         Ok(_) => {
-            println!(
-                "{} created and wrote to {}",
-                "Successfully".cyan().bold(),
-                file_path
-            );
+            println!("{} Created {}", "Success!".cyan().bold(), file_path);
             // declares the newly created module file so that it is included in unit tests
             let append_mod_res = read_write::try_append_solution_module(&filename, allow_dead_code);
             if let Err(e) = append_mod_res {
