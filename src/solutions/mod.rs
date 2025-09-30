@@ -1,4 +1,6 @@
 #[allow(dead_code)]
+mod s1039_minimum_score_triangulation_of_polygon;
+#[allow(dead_code)]
 mod s1129_shortest_path_with_alternating_colors;
 #[allow(dead_code)]
 mod s1192_critical_connections_in_a_network;
@@ -73,6 +75,8 @@ mod s2185_counting_words_with_a_given_prefix;
 #[allow(dead_code)]
 mod s2197_replace_non_coprime_numbers_in_array;
 #[allow(dead_code)]
+mod s2221_find_triangular_sum_of_an_array;
+#[allow(dead_code)]
 mod s2270_number_of_ways_to_split_array;
 #[allow(dead_code)]
 mod s2353_design_a_food_rating_system;
@@ -143,6 +147,10 @@ mod s3561_resulting_string_after_adjacent_removals;
 #[allow(dead_code)]
 mod s3633_earliest_finish_time_for_land_and_water_rides_i;
 #[allow(dead_code)]
+mod s3697_compute_decimal_representation;
+#[allow(dead_code)]
+mod s3698_split_array_with_minimum_difference;
+#[allow(dead_code)]
 mod s36_valid_sudoku;
 #[allow(dead_code)]
 mod s383_ransom_note;
@@ -181,12 +189,6 @@ mod s916_word_subsets;
 #[allow(dead_code)]
 mod s962_maximum_width_ramp;
 #[allow(dead_code)]
-mod s983_minimum_cost_for_tickets;
-#[allow(dead_code)]
 mod s976_largest_perimeter_triangle;
 #[allow(dead_code)]
-mod s3697_compute_decimal_representation;
-#[allow(dead_code)]
-mod s3698_split_array_with_minimum_difference;
-#[allow(dead_code)]
-mod s1039_minimum_score_triangulation_of_polygon;
+mod s983_minimum_cost_for_tickets;
