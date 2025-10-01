@@ -41,6 +41,8 @@ mod s1422_maximum_score_after_splitting_a_string;
 #[allow(dead_code)]
 mod s1466_reorder_routes_to_make_all_paths_lead_to_the_city_zero;
 #[allow(dead_code)]
+mod s1518_water_bottles;
+#[allow(dead_code)]
 mod s155_min_stack;
 #[allow(dead_code)]
 mod s15_3sum;
@@ -123,6 +125,8 @@ mod s3021_alice_and_bob_playing_flower_game;
 #[allow(dead_code)]
 mod s3025_find_the_number_of_ways_to_place_people_i;
 #[allow(dead_code)]
+mod s3035_maximum_palindromes_after_operations;
+#[allow(dead_code)]
 mod s3042_count_prefix_and_suffix_pairs_i;
 #[allow(dead_code)]
 mod s3163_string_compression_iii;
@@ -185,6 +189,8 @@ mod s812_largest_triangle_area;
 #[allow(dead_code)]
 mod s841_keys_and_rooms;
 #[allow(dead_code)]
+mod s915_partition_array_into_disjoint_intervals;
+#[allow(dead_code)]
 mod s916_word_subsets;
 #[allow(dead_code)]
 mod s962_maximum_width_ramp;
@@ -192,5 +198,3 @@ mod s962_maximum_width_ramp;
 mod s976_largest_perimeter_triangle;
 #[allow(dead_code)]
 mod s983_minimum_cost_for_tickets;
-#[allow(dead_code)]
-mod s3035_maximum_palindromes_after_operations;
