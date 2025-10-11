@@ -133,6 +133,8 @@ mod s3147_taking_maximum_energy_from_the_mystic_dungeon;
 #[allow(dead_code)]
 mod s3163_string_compression_iii;
 #[allow(dead_code)]
+mod s3186_maximum_total_damage_with_spell_casting;
+#[allow(dead_code)]
 mod s3223_minimum_length_of_string_after_operations;
 #[allow(dead_code)]
 mod s3408_design_task_manager;
