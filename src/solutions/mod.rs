@@ -181,6 +181,8 @@ mod s71_simplify_path;
 #[allow(dead_code)]
 mod s76_minimum_window_substring;
 #[allow(dead_code)]
+mod s778_swim_in_rising_water;
+#[allow(dead_code)]
 mod s797_all_paths_from_source_to_target;
 #[allow(dead_code)]
 mod s802_find_eventual_safe_states;
