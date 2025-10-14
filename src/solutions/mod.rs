@@ -81,6 +81,8 @@ mod s2221_find_triangular_sum_of_an_array;
 #[allow(dead_code)]
 mod s2270_number_of_ways_to_split_array;
 #[allow(dead_code)]
+mod s2273_find_resultant_array_after_removing_anagrams;
+#[allow(dead_code)]
 mod s2353_design_a_food_rating_system;
 #[allow(dead_code)]
 mod s2381_shifting_letters_ii;
@@ -108,6 +110,8 @@ mod s2683_neighboring_bitwise_xor;
 mod s2749_minimum_operations_to_make_the_integer_zero;
 #[allow(dead_code)]
 mod s289_game_of_life;
+#[allow(dead_code)]
+mod s2900_longest_unequal_adjacent_groups_subsequence_i;
 #[allow(dead_code)]
 mod s2914_minimum_number_of_changes_to_make_binary_string_beautiful;
 #[allow(dead_code)]
@@ -137,6 +141,8 @@ mod s3186_maximum_total_damage_with_spell_casting;
 #[allow(dead_code)]
 mod s3223_minimum_length_of_string_after_operations;
 #[allow(dead_code)]
+mod s3349_adjacent_increasing_subarrays_detection_i;
+#[allow(dead_code)]
 mod s3408_design_task_manager;
 #[allow(dead_code)]
 mod s3411_maximum_subarray_with_equal_products;
@@ -150,6 +156,8 @@ mod s3484_design_spreadsheet;
 mod s3495_minimum_operations_to_make_array_elements_zero;
 #[allow(dead_code)]
 mod s3516_find_closest_person;
+#[allow(dead_code)]
+mod s3531_count_covered_buildings;
 #[allow(dead_code)]
 mod s3561_resulting_string_after_adjacent_removals;
 #[allow(dead_code)]
