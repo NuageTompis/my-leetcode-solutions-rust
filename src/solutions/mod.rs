@@ -109,6 +109,8 @@ mod s2683_neighboring_bitwise_xor;
 #[allow(dead_code)]
 mod s2749_minimum_operations_to_make_the_integer_zero;
 #[allow(dead_code)]
+mod s2859_sum_of_values_at_indices_with_k_set_bits;
+#[allow(dead_code)]
 mod s289_game_of_life;
 #[allow(dead_code)]
 mod s2900_longest_unequal_adjacent_groups_subsequence_i;
@@ -142,6 +144,10 @@ mod s3186_maximum_total_damage_with_spell_casting;
 mod s3223_minimum_length_of_string_after_operations;
 #[allow(dead_code)]
 mod s3349_adjacent_increasing_subarrays_detection_i;
+#[allow(dead_code)]
+mod s3350_adjacent_increasing_subarrays_detection_ii;
+#[allow(dead_code)]
+mod s3370_smallest_number_with_all_set_bits;
 #[allow(dead_code)]
 mod s3408_design_task_manager;
 #[allow(dead_code)]

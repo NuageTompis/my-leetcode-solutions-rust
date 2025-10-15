@@ -18,6 +18,7 @@ impl Solution {
                 x => {
                     prev_b = x;
                     res.push(prev_best.to_owned());
+                    prev_best = w.to_owned();
                 }
             }
         }
@@ -33,8 +34,8 @@ mod tests {
 
     #[test]
     fn example_1() {
-        let words: Vec<String> = vec!["c".into()];
-        let groups: Vec<i32> = vec![0];
+        let words: Vec<String> = vec!["e".into(), "a".into(), "b".into()];
+        let groups: Vec<i32> = vec![0, 0, 1];
         let res = Solution::get_longest_subsequence(words, groups);
         let expected: Vec<String> = vec!["e".into(), "b".into()]; // Fill in this value
         assert_eq!(res, expected);
@@ -42,8 +43,8 @@ mod tests {
 
     #[test]
     fn example_2() {
-        let words: Vec<String> = vec!["d".into()];
-        let groups: Vec<i32> = vec![1];
+        let words: Vec<String> = vec!["a".into(), "b".into(), "c".into(), "d".into()];
+        let groups: Vec<i32> = vec![1, 0, 1, 1];
         let res = Solution::get_longest_subsequence(words, groups);
         let expected: Vec<String> = vec!["a".into(), "b".into(), "c".into()]; // Fill in this value
         assert_eq!(res, expected);
