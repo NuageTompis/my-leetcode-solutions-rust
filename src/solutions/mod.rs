@@ -100,6 +100,7 @@ mod s2530_maximal_score_after_applying_k_operations;
 mod s2559_count_vowel_strings_in_ranges;
 #[allow(dead_code)]
 mod s2583_kth_largest_sum_in_a_binary_tree;
+mod s2598_smallest_missing_non_negative_integer_after_operations;
 #[allow(dead_code)]
 mod s2657_find_the_prefix_common_array_of_two_arrays;
 #[allow(dead_code)]
