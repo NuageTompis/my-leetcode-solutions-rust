@@ -65,6 +65,8 @@ mod s1935_maximum_number_of_words_you_can_type;
 #[allow(dead_code)]
 mod s1_two_sum;
 #[allow(dead_code)]
+mod s2011_final_value_of_variable_after_performing_operations;
+#[allow(dead_code)]
 mod s2017_grid_game;
 #[allow(dead_code)]
 mod s205_isomorphic_strings;
@@ -143,6 +145,8 @@ mod s3163_string_compression_iii;
 mod s3186_maximum_total_damage_with_spell_casting;
 #[allow(dead_code)]
 mod s3223_minimum_length_of_string_after_operations;
+#[allow(dead_code)]
+mod s3346_maximum_frequency_of_an_element_after_performing_operations_i;
 #[allow(dead_code)]
 mod s3349_adjacent_increasing_subarrays_detection_i;
 #[allow(dead_code)]
