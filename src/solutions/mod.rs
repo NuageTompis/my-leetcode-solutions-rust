@@ -180,6 +180,10 @@ mod s3698_split_array_with_minimum_difference;
 #[allow(dead_code)]
 mod s36_valid_sudoku;
 #[allow(dead_code)]
+mod s3718_smallest_missing_multiple_of_k;
+#[allow(dead_code)]
+mod s3720_lexicographically_smallest_permutation_greater_than_target;
+#[allow(dead_code)]
 mod s383_ransom_note;
 #[allow(dead_code)]
 mod s407_trapping_rain_water_ii;
