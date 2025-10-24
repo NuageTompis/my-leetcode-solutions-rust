@@ -69,6 +69,8 @@ mod s2011_final_value_of_variable_after_performing_operations;
 #[allow(dead_code)]
 mod s2017_grid_game;
 #[allow(dead_code)]
+mod s2048_next_greater_numerically_balanced_number;
+#[allow(dead_code)]
 mod s205_isomorphic_strings;
 #[allow(dead_code)]
 mod s20_valid_parentheses;
@@ -161,6 +163,8 @@ mod s3411_maximum_subarray_with_equal_products;
 mod s3412_find_mirror_score_of_a_string;
 #[allow(dead_code)]
 mod s3446_sort_matrix_by_diagonals;
+#[allow(dead_code)]
+mod s3461_check_if_digits_are_equal_in_string_after_operations_i;
 #[allow(dead_code)]
 mod s3484_design_spreadsheet;
 #[allow(dead_code)]
