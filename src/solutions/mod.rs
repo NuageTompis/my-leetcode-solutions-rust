@@ -77,6 +77,8 @@ mod s20_valid_parentheses;
 #[allow(dead_code)]
 mod s2116_check_if_a_parentheses_string_can_be_valid;
 #[allow(dead_code)]
+mod s2125_number_of_laser_beams_in_a_bank;
+#[allow(dead_code)]
 mod s2185_counting_words_with_a_given_prefix;
 #[allow(dead_code)]
 mod s2197_replace_non_coprime_numbers_in_array;
