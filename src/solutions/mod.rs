@@ -69,6 +69,8 @@ mod s2011_final_value_of_variable_after_performing_operations;
 #[allow(dead_code)]
 mod s2017_grid_game;
 #[allow(dead_code)]
+mod s2043_simple_bank_system;
+#[allow(dead_code)]
 mod s2048_next_greater_numerically_balanced_number;
 #[allow(dead_code)]
 mod s205_isomorphic_strings;
@@ -155,6 +157,8 @@ mod s3346_maximum_frequency_of_an_element_after_performing_operations_i;
 mod s3349_adjacent_increasing_subarrays_detection_i;
 #[allow(dead_code)]
 mod s3350_adjacent_increasing_subarrays_detection_ii;
+#[allow(dead_code)]
+mod s3354_make_array_elements_equal_to_zero;
 #[allow(dead_code)]
 mod s3370_smallest_number_with_all_set_bits;
 #[allow(dead_code)]
