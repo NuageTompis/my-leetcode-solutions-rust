@@ -43,6 +43,8 @@ mod s1466_reorder_routes_to_make_all_paths_lead_to_the_city_zero;
 #[allow(dead_code)]
 mod s1518_water_bottles;
 #[allow(dead_code)]
+mod s1526_minimum_number_of_increments_on_subarrays_to_form_a_target_array;
+#[allow(dead_code)]
 mod s155_min_stack;
 #[allow(dead_code)]
 mod s15_3sum;
@@ -151,6 +153,8 @@ mod s3163_string_compression_iii;
 mod s3186_maximum_total_damage_with_spell_casting;
 #[allow(dead_code)]
 mod s3223_minimum_length_of_string_after_operations;
+#[allow(dead_code)]
+mod s3289_the_two_sneaky_numbers_of_digitville;
 #[allow(dead_code)]
 mod s3346_maximum_frequency_of_an_element_after_performing_operations_i;
 #[allow(dead_code)]
