@@ -89,6 +89,8 @@ mod s2197_replace_non_coprime_numbers_in_array;
 #[allow(dead_code)]
 mod s2221_find_triangular_sum_of_an_array;
 #[allow(dead_code)]
+mod s2257_count_unguarded_cells_in_the_grid;
+#[allow(dead_code)]
 mod s2270_number_of_ways_to_split_array;
 #[allow(dead_code)]
 mod s2273_find_resultant_array_after_removing_anagrams;
@@ -151,6 +153,8 @@ mod s3147_taking_maximum_energy_from_the_mystic_dungeon;
 mod s3163_string_compression_iii;
 #[allow(dead_code)]
 mod s3186_maximum_total_damage_with_spell_casting;
+#[allow(dead_code)]
+mod s3217_delete_nodes_from_linked_list_present_in_array;
 #[allow(dead_code)]
 mod s3223_minimum_length_of_string_after_operations;
 #[allow(dead_code)]
