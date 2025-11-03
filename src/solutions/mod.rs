@@ -202,6 +202,10 @@ mod s3718_smallest_missing_multiple_of_k;
 #[allow(dead_code)]
 mod s3720_lexicographically_smallest_permutation_greater_than_target;
 #[allow(dead_code)]
+mod s3731_find_missing_elements;
+#[allow(dead_code)]
+mod s3732_maximum_product_of_three_elements_after_one_replacement;
+#[allow(dead_code)]
 mod s383_ransom_note;
 #[allow(dead_code)]
 mod s407_trapping_rain_water_ii;
